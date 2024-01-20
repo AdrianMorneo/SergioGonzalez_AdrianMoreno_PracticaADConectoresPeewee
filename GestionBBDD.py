@@ -1,4 +1,4 @@
-
+import pymysql as ps
 import Utiles as ut
 import GestionProfesores as gp
 import GestionAlumnos as ga
@@ -24,7 +24,8 @@ def crearBBDD():
         print("Error al crear la base de datos:", errorCrearBBDD)
     finally:
         confirmarEjecucionCerrarCursor(con, cur)
-        
+
+
 def conexion():
     """
     Realiza la conexión la BBDD con los parametros que contiene el fichero de configuracion ConexionConfig.ini
