@@ -4,7 +4,6 @@ import GestionAlumnos as ga
 import GestionCursos as gc
 import GestionProfesores as gp
 
-gbd.crearBBDD()
 gbd.crearTablasBBDD()
 
 while True:

@@ -4,6 +4,7 @@ import GestionProfesores as gp
 import GestionAlumnos as ga
 import GestionCursos as gc
 from configparser import ConfigParser
+from peewee import Model, MySQLDatabase, CharField
 
 
 ######################################################################
@@ -12,19 +13,6 @@ from configparser import ConfigParser
 ######################################################################
 ######################################################################
 
-def crearBBDD():
-    """
-    Crea la base de datos si no existe
-    :return: No devuelve nada
-    """
-    con, cur = conexion()
-    try:
-        cur.execute('CREATE DATABASE IF NOT EXISTS adrianmoreno_sergiogonzalez;')
-    except Exception as errorCrearBBDD:
-        print("Error al crear la base de datos:", errorCrearBBDD)
-    finally:
-        confirmarEjecucionCerrarCursor(con, cur)
-
 
 def conexion():
     """
@@ -32,33 +20,36 @@ def conexion():
     :return: No devuelve nada
     """
 
-    configuracion = ConfigParser()
-    configuracion.read("ConexionConfig.ini")
+    #configuracion = ConfigParser()
+    #configuracion.read("ConexionConfig.ini")
     try:
+        db = MySQLDatabase('mysql', user='root', password='my-secret-pw',
+                           host='localhost', port=3307)
 
-        con = ps.connect(host=configuracion.get('conexion', 'host'),
+        db.execute_sql('CREATE DATABASE IF NOT EXISTS adrianmoreno_sergiogonzalezPeewee;')
+
+        # Definición del modelo
+        class MiModelo(Model):
+            campo_texto = CharField()
+
+            class Meta:
+                database = db
+
+        # Conexión a la base de datos
+        db.connect()
+        '''
+        db = MySQLDatabase(host=configuracion.get('conexion', 'host'),
                          port=configuracion.getint('conexion', 'puerto'),
                          user=configuracion.get('conexion', 'user'),
                          db=configuracion.get('conexion' , 'db'),
                          password=configuracion.get('conexion','password'))
-        cursor = con.cursor()
-        return con, cursor
+        
+        '''
+    except Exception as errorConexion:
+        print("Error en la conexión:", errorConexion)
 
-    except Exception as errorConexionNoExiste:
+    return None, None  # Retorna None en caso de error en la conexión
 
-        try:
-            con = ps.connect(host=configuracion.get('conexion', 'host'),
-                             port=configuracion.getint('conexion', 'puerto'),
-                             user=configuracion.get('conexion', 'user'),
-                             password=configuracion.get('conexion','password'))
-            cursor = con.cursor()
-            print("La BBDD no existe, se creará")
-            return con, cursor
-
-        except Exception as errorConexion:
-            print("Error en la conexión:", errorConexion)
-
-        return None, None  # Retorna None en caso de error en la conexión
 
 def confirmarEjecucionCerrarCursor(con, cur):
     """
