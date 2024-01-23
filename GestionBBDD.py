@@ -4,7 +4,7 @@ import GestionProfesores as gp
 import GestionAlumnos as ga
 import GestionCursos as gc
 from configparser import ConfigParser
-from peewee import Model, MySQLDatabase, CharField
+from peewee import Model, MySQLDatabase, CharField , AutoField
 
 
 ######################################################################
@@ -50,7 +50,8 @@ def conexion():
 
     return None, None  # Retorna None en caso de error en la conexión
 
-
+#Con peewee supuestamente no hace falta
+'''
 def confirmarEjecucionCerrarCursor(con, cur):
     """
     Realiza el commit y cierra el cursor
@@ -63,7 +64,7 @@ def confirmarEjecucionCerrarCursor(con, cur):
         cur.close()
     except Exception as errorCerrarConexion:
         print("Error al confirmar y cerrar cursor:", errorCerrarConexion)
-
+'''
 
 def crearUsuarioRootBBDD():
     """
@@ -106,51 +107,52 @@ def crearTablasBBDD():
 
     :return: No devuelve nada.
     """
-
-    con, cur = conexion()
+    conexion()
     try:
         # Tabla para profesores
-        cur.execute('''CREATE TABLE IF NOT EXISTS profesores (
-            ID INT AUTO_INCREMENT PRIMARY KEY,
-            DNI CHAR(9) UNIQUE NOT NULL,
-            Nombre VARCHAR(255) NOT NULL,
-            Direccion VARCHAR(255) NOT NULL,
-            Telefono CHAR(9) NOT NULL
-        );''')
-
+        class Profesor(Model):
+            ID = AutoField(primary_key=True)
+            DNI = CharField(unique=True, max_length=9)
+            Nombre = CharField(max_length=255)
+            Direccion = CharField(max_length=255)
+            Telefono = CharField(max_length=9)
+            class Meta:
+                database = db
+                table_name = 'Profesores'
         # Tabla para cursos
-        cur.execute('''CREATE TABLE IF NOT EXISTS cursos (
-            Codigo INT AUTO_INCREMENT PRIMARY KEY,
-            Nombre VARCHAR(255) UNIQUE NOT NULL,
-            Descripcion TEXT NOT NULL,
-            ProfesorID INT,
-            FOREIGN KEY (ProfesorID) REFERENCES profesores (ID) ON DELETE SET NULL
-        );''')
-
-        # Tabla para alumnos
-        cur.execute('''CREATE TABLE IF NOT EXISTS alumnos (
-            NumeroExpediente INT AUTO_INCREMENT PRIMARY KEY,
-            Nombre VARCHAR(255) NOT NULL,
-            Apellidos VARCHAR(255) NOT NULL,
-            Telefono CHAR(9) UNIQUE NOT NULL,
-            Direccion VARCHAR(255) NOT NULL,
-            FechaNacimiento DATE NOT NULL,
-            UNIQUE (Nombre, Apellidos)
-        );''')
+        class Curso(Model):
+            Codigo = AutoField(primary_key=True)
+            Nombre = CharField(unique=True, max_length=255)
+            Descripcion = TextField()
+            ProfesorID = ForeignKeyField(Profesor, backref='cursos', null=True)
+            class Meta:
+                database = db
+                table_name = 'Cursos'
+        #Tabla Alumnos
+        class Alumno(Model):
+            NumeroExpediente = AutoField(primary_key=True)
+            Nombre = CharField(max_length=255)
+            Apellidos = CharField(max_length=255)
+            Telefono = CharField(unique=True, max_length=9)
+            Direccion = CharField(max_length=255)
+            FechaNacimiento = DateField()
+            class Meta:
+                database = db
+                table_name = 'Alumnos'
         # Tabla para la relación entre alumnos y cursos (muchos a muchos)
-        cur.execute('''
-        CREATE TABLE IF NOT EXISTS alumnoscursos (
-            AlumnoExpediente INT,
-            CursoCodigo INT,
-            PRIMARY KEY (AlumnoExpediente, CursoCodigo),
-            FOREIGN KEY (AlumnoExpediente) REFERENCES alumnos(NumeroExpediente) ON DELETE CASCADE,
-            FOREIGN KEY (CursoCodigo) REFERENCES cursos(Codigo) ON DELETE CASCADE
-        );''')
+        class AlumnosCursos(Model):
+            AlumnoExpediente = ForeignKeyField(Alumno, field='NumeroExpediente', backref='alumnos_cursos')
+            CursoCodigo = ForeignKeyField(Curso, field='Codigo', backref='alumnos_cursos')
+            class Meta:
+                database = db
+                table_name = 'AlumnosCursos'
+
+            db.connect()
+            db.create_tables([Profesor, Curso, Alumno])
+            db.close()
+
     except Exception as errorCrearTablas:
         print("Error al crear las tablas:", errorCrearTablas)
-    finally:
-        confirmarEjecucionCerrarCursor(con, cur)
-
 
 ######################################################################
 ######################################################################
