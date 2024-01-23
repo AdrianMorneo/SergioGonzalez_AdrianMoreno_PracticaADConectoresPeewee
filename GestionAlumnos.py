@@ -4,6 +4,8 @@ import Utiles as ut
 número de expediente, nombre, apellidos, teléfono, dirección y
 fecha de nacimiento.
 '''
+
+
 def nuevoAlumno():
 
     """

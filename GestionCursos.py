@@ -3,7 +3,8 @@ import Utiles as ut
 
 
 def nuevoCursoPeewee():
-    curso = gbd.Cursos.create(Nombre='Prueba Peewee', Descripcion='Descripcion prueba peewee')
+    nuevoCurso = gbd.cursos.create(Nombre="wafsdaf", Descripcion="a")
+    nuevoCurso.save()
 
 def nuevoCurso():
 

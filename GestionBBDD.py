@@ -13,7 +13,55 @@ from peewee import Model, MySQLDatabase, CharField , AutoField , TextField , For
 ######################################################################
 ######################################################################
 
-db = MySQLDatabase('adrianmoreno_sergiogonzalezPeewee', user='root', password='my-secret-pw',host='localhost', port=3307)
+db = MySQLDatabase('adrianmoreno_sergiogonzalezPeewee', user='root', password='1234',host='localhost', port=3306)
+
+
+class profesores(Model):
+    ID = AutoField(primary_key=True)
+    DNI = CharField(unique=True, max_length=9)
+    Nombre = CharField(max_length=255)
+    Direccion = CharField(max_length=255)
+    Telefono = CharField(max_length=9)
+
+    class Meta:
+        database = db
+        table_name = 'profesores'
+    # Tabla para cursos
+
+
+class cursos(Model):
+    Codigo = AutoField(primary_key=True)
+    Nombre = CharField(unique=True, max_length=255)
+    Descripcion = TextField()
+    ProfesorID = ForeignKeyField(profesores, backref='cursos', null=True)
+
+    class Meta:
+        database = db
+        table_name = 'cursos'
+        # Tabla Alumnos
+
+
+class alumnos(Model):
+    NumeroExpediente = AutoField(primary_key=True)
+    Nombre = CharField(max_length=255)
+    Apellidos = CharField(max_length=255)
+    Telefono = CharField(unique=True, max_length=9)
+    Direccion = CharField(max_length=255)
+    FechaNacimiento = DateField()
+
+    class Meta:
+        database = db
+        table_name = 'alumnos'
+    # Tabla para la relación entre alumnos y cursos (muchos a muchos)
+
+
+class alumnoscursos(Model):
+    AlumnoExpediente = ForeignKeyField(alumnos, field='NumeroExpediente', backref='alumnos_cursos')
+    CursoCodigo = ForeignKeyField(cursos, field='Codigo', backref='alumnos_cursos')
+
+    class Meta:
+        database = db
+        table_name = 'AlumnosCursos'
 
 def crearBBDD():
     """
@@ -74,56 +122,15 @@ def crearTablasBBDD():
     Crea las tablas principales de la BBDD si no existen
     :return: No devuelve nada.
     """
-    db = conexion()
 
     try:
         # Tabla para profesores
-        class Profesor(Model):
-            ID = AutoField(primary_key=True)
-            DNI = CharField(unique=True, max_length=9)
-            Nombre = CharField(max_length=255)
-            Direccion = CharField(max_length=255)
-            Telefono = CharField(max_length=9)
-            class Meta:
-                database = db
-                table_name = 'Profesores'
-        # Tabla para cursos
-        class Curso(Model):
-            Codigo = AutoField(primary_key=True)
-            Nombre = CharField(unique=True, max_length=255)
-            Descripcion = TextField()
-            ProfesorID = ForeignKeyField(Profesor, backref='cursos', null=True)
-            class Meta:
-                database = db
-                table_name = 'Cursos'
-                # Tabla Alumnos
-
-        class Alumno(Model):
-            NumeroExpediente = AutoField(primary_key=True)
-            Nombre = CharField(max_length=255)
-            Apellidos = CharField(max_length=255)
-            Telefono = CharField(unique=True, max_length=9)
-            Direccion = CharField(max_length=255)
-            FechaNacimiento = DateField()
-
-            class Meta:
-                database = db
-                table_name = 'Alumnos'
-        # Tabla para la relación entre alumnos y cursos (muchos a muchos)
-        class AlumnosCursos(Model):
-            AlumnoExpediente = ForeignKeyField(Alumno, field='NumeroExpediente', backref='alumnos_cursos')
-            CursoCodigo = ForeignKeyField(Curso, field='Codigo', backref='alumnos_cursos')
-            class Meta:
-                database = db
-                table_name = 'AlumnosCursos'
-
-
-        db.create_tables([Profesor, Curso, Alumno, AlumnosCursos])
+        db.create_tables([profesores, cursos, alumnos, alumnoscursos])
         db.close()
 
     except Exception as errorCrearTablas:
 
-        print("Error al crear las tablas:", errorCrearTablas)
+        "-----Las tablas ya existen----"
 
 ######################################################################
 ######################################################################
@@ -153,7 +160,7 @@ def nuevoProfesorInsertBBDD(dni, nombre, direccion, telefono):
         print("Error al introducir profesor en la BBDD", errorMeterProfesor)
         print("No se ha realizado un nuevo alta")
     finally:
-        confirmarEjecucionCerrarCursor(con, cur)
+        'confirmarEjecucionCerrarCursor(con, cur)'
 
 
 def eliminarProfesorBBDD():
@@ -173,7 +180,7 @@ def eliminarProfesorBBDD():
                 except Exception as errorEliminar:
                     print(f"Error al eliminar el profesor con DNI: {dni}: {errorEliminar}")
                 finally:
-                    confirmarEjecucionCerrarCursor(con, cur)
+                    '#confirmarEjecucionCerrarCursor(con, cur)'
 
 
 def buscarProfesorBBDD(dni):
@@ -203,7 +210,7 @@ def buscarProfesorBBDD(dni):
             print(f"Error al buscar el profesor con DNI: {dni}: {errorModificarProfesor}")
             return 0
         finally:
-            confirmarEjecucionCerrarCursor(con, cur)
+            'confirmarEjecucionCerrarCursor(con, cur)'
 
 def buscarProfesorBBDDSinPrint(dni):
     """
@@ -226,7 +233,10 @@ def buscarProfesorBBDDSinPrint(dni):
         print(f"Error al buscar el profesor con DNI: {dni}: {errorModificarProfesor}")
         return 0
     finally:
-        confirmarEjecucionCerrarCursor(con, cur)
+        ''
+
+
+# confirmarEjecucionCerrarCursor(con, cur)
 
 
 def modificarProfesorBBDD():
@@ -324,7 +334,7 @@ def modificarProfesorBBDD():
             except Exception as errorModificarProfesor:
                 print(f"Error al modificar el profesor {dni}: {errorModificarProfesor}")
             finally:
-                confirmarEjecucionCerrarCursor(con, cur)
+                'confirmarEjecucionCerrarCursor(con, cur)'
 
 
 def mostrarProfesores():
@@ -350,7 +360,7 @@ def mostrarProfesores():
             print("Direccion:", profesor[3])
             print("Telefono:", profesor[4], '\n')
             cont = cont + 1
-    confirmarEjecucionCerrarCursor(con, cur)
+    'confirmarEjecucionCerrarCursor(con, cur)'
 
 
 ######################################################################
@@ -378,7 +388,7 @@ def nuevoCursoInsertBBDD(nombre, descripcion):
         print("Error al introducir Curso en la BBDD", errorMeterProfesor)
         print("No se ha realizado un nuevo alta")
     finally:
-        confirmarEjecucionCerrarCursor(con, cur)
+        'confirmarEjecucionCerrarCursor(con, cur)'
 
 
 def eliminarCursosBBDD():
@@ -398,7 +408,7 @@ def eliminarCursosBBDD():
                 except Exception as errorEliminar:
                     print(f"Error al eliminar el CURSO: {nombre}: {errorEliminar}")
                 finally:
-                    confirmarEjecucionCerrarCursor(con, cur)
+                    'confirmarEjecucionCerrarCursor(con, cur)'
 
 
 def buscarCursoBBDD(nombre):
@@ -434,7 +444,7 @@ def buscarCursoBBDD(nombre):
         except Exception as errorModificarProfesor:
             print(f"Error al buscar el curso con nombre: {nombre}: {errorModificarProfesor}")
         finally:
-            confirmarEjecucionCerrarCursor(con, cur)
+            'confirmarEjecucionCerrarCursor(con, cur)'
             return encontrado
 
 
@@ -527,7 +537,7 @@ def modificarCursoBBDD():
             except Exception as errorModificarProfesor:
                 print(f"Error al modificar el profesor {nombre}: {errorModificarProfesor}")
             finally:
-                confirmarEjecucionCerrarCursor(con, cur)
+               ' confirmarEjecucionCerrarCursor(con, cur)'
 
 
 def mostrarTodosCursosBBDD():
@@ -561,7 +571,7 @@ def mostrarTodosCursosBBDD():
                 print("")
 
             cont = cont + 1
-    confirmarEjecucionCerrarCursor(con, cur)
+    'confirmarEjecucionCerrarCursor(con, cur)'
 
 
 def devolverIddeCurso(nombre):
@@ -582,7 +592,7 @@ def devolverIddeCurso(nombre):
         return id
 
 
-    confirmarEjecucionCerrarCursor(con, cur)
+    'confirmarEjecucionCerrarCursor(con, cur)'
 
 
 ######################################################################
@@ -611,7 +621,7 @@ def nuevoAlumnoInsertBBDD(nombre, apellidos, telefono, direccion, fecha):
         print("Error al introducir alumno en la BBDD", errorMeterProfesor)
         print("No se ha realizado un nuevo alta")
     finally:
-        confirmarEjecucionCerrarCursor(con, cur)
+        'confirmarEjecucionCerrarCursor(con, cur)'
 
 
 def buscarAlumnoBBDD(nombre, apellidos):
@@ -643,7 +653,7 @@ def buscarAlumnoBBDD(nombre, apellidos):
             print("Error al buscar el alumno con ")
             return 0
         finally:
-            confirmarEjecucionCerrarCursor(con, cur)
+            'confirmarEjecucionCerrarCursor(con, cur)'
 
 
 def buscarAlumnoBBDDid(nombre, apellidos):
@@ -668,7 +678,7 @@ def buscarAlumnoBBDDid(nombre, apellidos):
             print("Error al buscar el alumno. ")
             return 0
         finally:
-            confirmarEjecucionCerrarCursor(con, cur)
+            'confirmarEjecucionCerrarCursor(con, cur)'
 
 
 def eliminarAlumnoBBDD():
@@ -688,7 +698,7 @@ def eliminarAlumnoBBDD():
                 except Exception as errorEliminar:
                     print(f"Error al eliminar el Alumno: {nombre[0]}")
                 finally:
-                    confirmarEjecucionCerrarCursor(con, cur)
+                    'confirmarEjecucionCerrarCursor(con, cur)'
 
 def modificarAlumnoBBDD():
     '''
@@ -806,7 +816,7 @@ def modificarAlumnoBBDD():
             except Exception as errorModificarProfesor:
                 print(f"Error al modificar el alumno {nombre[0]} {nombre[1]}")
             finally:
-                confirmarEjecucionCerrarCursor(con, cur)
+                'confirmarEjecucionCerrarCursor(con, cur)'
 
 def mostrarAlumnos():
     '''
@@ -832,7 +842,7 @@ def mostrarAlumnos():
             print("Direccion:", alumno[4])
             print("Fecha de Nacimiento:", alumno[5], '\n')
             cont = cont + 1
-    confirmarEjecucionCerrarCursor(con, cur)
+    'confirmarEjecucionCerrarCursor(con, cur)'
 
 
 def matricularAlumno():
@@ -881,7 +891,7 @@ def matricularAlumno():
                         print("Alumno matriculado correctamente.")
                     else:
                         print("No se matriculo el alumno , ya pertenece a este Curso.")
-    confirmarEjecucionCerrarCursor(con, cur)
+    'confirmarEjecucionCerrarCursor(con, cur)'
 
 def desmatricularAlumno():
     """
@@ -932,7 +942,7 @@ def desmatricularAlumno():
                         cur.execute(f'''DELETE FROM alumnoscursos WHERE AlumnoExpediente = '{expAlumno}' ''')
                 else:
                     print("No has introducido un expediente correcto")
-    confirmarEjecucionCerrarCursor(con, cur)
+    'confirmarEjecucionCerrarCursor(con, cur)'
 
 def mostrarAlumnosdeCurso():
     '''
@@ -962,4 +972,6 @@ def mostrarAlumnosdeCurso():
                 alumnos = cur.fetchall()
                 for alumno in alumnos:
                     print(f"Numero de Expediente: {alumno[0]} , Alumno: {alumno[1]} {alumno[2]}\n")
-    confirmarEjecucionCerrarCursor(con, cur)
+    'confirmarEjecucionCerrarCursor(con, cur)'
+
+
