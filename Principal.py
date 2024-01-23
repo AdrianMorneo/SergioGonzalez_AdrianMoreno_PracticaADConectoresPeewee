@@ -1,13 +1,14 @@
 
 import GestionBBDD as gbd
+
 import GestionAlumnos as ga
 import GestionCursos as gc
 import GestionProfesores as gp
-
+gbd.crearBBDD()
 gbd.crearTablasBBDD()
 
 while True:
-
+    gc.nuevoCursoPeewee()
     # Menú principal
     print("\nBienvenido al Centro de Estudios de Adrian y Sergio")
     print("--------------------------------------------------")

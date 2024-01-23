@@ -1,5 +1,10 @@
 import GestionBBDD as gbd
 import Utiles as ut
+
+
+def nuevoCursoPeewee():
+    curso = gbd.Cursos.create(Nombre='Prueba Peewee', Descripcion='Descripcion prueba peewee')
+
 def nuevoCurso():
 
     """

@@ -4,7 +4,7 @@ import GestionProfesores as gp
 import GestionAlumnos as ga
 import GestionCursos as gc
 from configparser import ConfigParser
-from peewee import Model, MySQLDatabase, CharField , AutoField
+from peewee import Model, MySQLDatabase, CharField , AutoField , TextField , ForeignKeyField, DateField
 
 
 ######################################################################
@@ -12,6 +12,30 @@ from peewee import Model, MySQLDatabase, CharField , AutoField
 ###                             BBDD                               ###
 ######################################################################
 ######################################################################
+
+db = MySQLDatabase('adrianmoreno_sergiogonzalezPeewee', user='root', password='my-secret-pw',host='localhost', port=3307)
+
+def crearBBDD():
+    """
+    Crea la base de datos si no existe con conectores
+    :return: No devuelve nada
+    """
+    configuracion = ConfigParser()
+    configuracion.read("ConexionConfig.ini")
+
+    con = ps.connect(host=configuracion.get('conexion', 'host'),
+                     port=configuracion.getint('conexion', 'puerto'),
+                     user=configuracion.get('conexion', 'user'),
+                     password=configuracion.get('conexion', 'password'))
+    cursor = con.cursor()
+
+    try:
+        cursor.execute('CREATE DATABASE IF NOT EXISTS adrianmoreno_sergiogonzalezPeewee;')
+    except Exception as errorCrearBBDD:
+        print("Error al crear la base de datos:", errorCrearBBDD)
+    finally:
+        con.commit()
+        cursor.close()
 
 
 def conexion():
@@ -23,10 +47,6 @@ def conexion():
     #configuracion = ConfigParser()
     #configuracion.read("ConexionConfig.ini")
     try:
-        db = MySQLDatabase('mysql', user='root', password='my-secret-pw',
-                           host='localhost', port=3307)
-
-        db.execute_sql('CREATE DATABASE IF NOT EXISTS adrianmoreno_sergiogonzalezPeewee;')
 
         # Definición del modelo
         class MiModelo(Model):
@@ -37,77 +57,25 @@ def conexion():
 
         # Conexión a la base de datos
         db.connect()
-        '''
-        db = MySQLDatabase(host=configuracion.get('conexion', 'host'),
-                         port=configuracion.getint('conexion', 'puerto'),
-                         user=configuracion.get('conexion', 'user'),
-                         db=configuracion.get('conexion' , 'db'),
-                         password=configuracion.get('conexion','password'))
-        
-        '''
+
+        return db
     except Exception as errorConexion:
         print("Error en la conexión:", errorConexion)
 
     return None, None  # Retorna None en caso de error en la conexión
 
 #Con peewee supuestamente no hace falta
-'''
-def confirmarEjecucionCerrarCursor(con, cur):
-    """
-    Realiza el commit y cierra el cursor
-    :param con: Recibe la conexion
-    :param cur: Recibe el cursor
-    :return: No devuelve nada
-    """
-    try:
-        con.commit()
-        cur.close()
-    except Exception as errorCerrarConexion:
-        print("Error al confirmar y cerrar cursor:", errorCerrarConexion)
-'''
 
-def crearUsuarioRootBBDD():
-    """
-    Crea el usuario root si no existe
-    :return: No devuelve nada
-    """
-    con, cur = conexion()
-    try:
-        cur.execute('''CREATE USER IF NOT EXISTS 'root'@'localhost' IDENTIFIED BY '1234';''')
-        cur.execute('''GRANT ALL PRIVILEGES ON adrianmoreno_sergiogonzalez.* TO 'root'@'localhost';''')
-        cur.execute('''FLUSH PRIVILEGES;''')
-    except Exception as errorCrearUsuario:
-        print("Error al crear el usuario 'root':", errorCrearUsuario)
-    finally:
-        confirmarEjecucionCerrarCursor(con, cur)
-
-
-def crearUsuarioNuevoBBDD(nombre, contrasena):
-    """
-    Recibe por parámetros nombre y contraseña y crea un usuario con todos los privilegios.
-
-    :param nombre: Nombre de usuario.
-    :param contrasena: Contraseña de usuario.
-    :return: No devuelve nada.
-    """
-    con, cur = conexion()
-    try:
-        cur.execute(f"CREATE USER IF NOT EXISTS '{nombre}'@'localhost' IDENTIFIED BY '{contrasena}';")
-        cur.execute(f"GRANT ALL PRIVILEGES ON adrianmoreno_sergiogonzalez.* TO '{nombre}'@'localhost';")
-        cur.execute("FLUSH PRIVILEGES;")
-    except Exception as errorCrearUsuario:
-        print(f"Error al crear el usuario '{nombre}': {errorCrearUsuario}")
-    finally:
-        confirmarEjecucionCerrarCursor(con, cur)
+db = MySQLDatabase('adrianmoreno_sergiogonzalezPeewee', user='root', password='my-secret-pw',host='localhost', port=3307)
 
 
 def crearTablasBBDD():
     """
     Crea las tablas principales de la BBDD si no existen
-
     :return: No devuelve nada.
     """
-    conexion()
+    db = conexion()
+
     try:
         # Tabla para profesores
         class Profesor(Model):
@@ -128,7 +96,8 @@ def crearTablasBBDD():
             class Meta:
                 database = db
                 table_name = 'Cursos'
-        #Tabla Alumnos
+                # Tabla Alumnos
+
         class Alumno(Model):
             NumeroExpediente = AutoField(primary_key=True)
             Nombre = CharField(max_length=255)
@@ -136,6 +105,7 @@ def crearTablasBBDD():
             Telefono = CharField(unique=True, max_length=9)
             Direccion = CharField(max_length=255)
             FechaNacimiento = DateField()
+
             class Meta:
                 database = db
                 table_name = 'Alumnos'
@@ -147,11 +117,12 @@ def crearTablasBBDD():
                 database = db
                 table_name = 'AlumnosCursos'
 
-            db.connect()
-            db.create_tables([Profesor, Curso, Alumno])
-            db.close()
+
+        db.create_tables([Profesor, Curso, Alumno, AlumnosCursos])
+        db.close()
 
     except Exception as errorCrearTablas:
+
         print("Error al crear las tablas:", errorCrearTablas)
 
 ######################################################################
