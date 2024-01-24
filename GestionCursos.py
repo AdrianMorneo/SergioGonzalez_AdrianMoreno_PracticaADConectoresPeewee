@@ -2,9 +2,7 @@ import GestionBBDD as gbd
 import Utiles as ut
 
 
-def nuevoCursoPeewee():
-    nuevoCurso = gbd.cursos.create(Nombre="wafsdaf", Descripcion="a")
-    nuevoCurso.save()
+
 
 def nuevoCurso():
 
@@ -61,7 +59,7 @@ def buscarCurso():
     """
     finEntradaAlta = False
     fallos = 0
-    if ut.comprobarVacio("cursos"):
+    if ut.comprobarVacio("Cursos"):
         while not finEntradaAlta and fallos < 5:
             nombre = input("Nombre: ").strip().upper()
             if ut.validarNombre(nombre):

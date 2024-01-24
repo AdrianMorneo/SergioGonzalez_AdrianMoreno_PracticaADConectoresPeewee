@@ -13,7 +13,7 @@ from peewee import Model, MySQLDatabase, CharField , AutoField , TextField , For
 ######################################################################
 ######################################################################
 
-db = MySQLDatabase('adrianmoreno_sergiogonzalezPeewee', user='root', password='1234',host='localhost', port=3306)
+db = MySQLDatabase('adrianmoreno_sergiogonzalezPeewee', user='root', password='my-secret-pw',host='localhost', port=3307)
 
 
 class profesores(Model):
@@ -33,11 +33,11 @@ class cursos(Model):
     Codigo = AutoField(primary_key=True)
     Nombre = CharField(unique=True, max_length=255)
     Descripcion = TextField()
-    ProfesorID = ForeignKeyField(profesores, backref='cursos', null=True)
+    ProfesorID = ForeignKeyField(profesores, backref='Cursos', null=True)
 
     class Meta:
         database = db
-        table_name = 'cursos'
+        table_name = 'Cursos'
         # Tabla Alumnos
 
 
@@ -92,10 +92,7 @@ def conexion():
     :return: No devuelve nada
     """
 
-    #configuracion = ConfigParser()
-    #configuracion.read("ConexionConfig.ini")
     try:
-
         # Definición del modelo
         class MiModelo(Model):
             campo_texto = CharField()
@@ -107,15 +104,11 @@ def conexion():
         db.connect()
 
         return db
+
     except Exception as errorConexion:
         print("Error en la conexión:", errorConexion)
 
     return None, None  # Retorna None en caso de error en la conexión
-
-#Con peewee supuestamente no hace falta
-
-db = MySQLDatabase('adrianmoreno_sergiogonzalezPeewee', user='root', password='my-secret-pw',host='localhost', port=3307)
-
 
 def crearTablasBBDD():
     """
@@ -376,19 +369,14 @@ def nuevoCursoInsertBBDD(nombre, descripcion):
     :param descripcion: Recibe descripcion Curso
     :return: No devuelve nada
     """
-    con, cur = conexion()
-
     try:
-        cur.execute("set FOREIGN_KEY_CHECKS = 1")
-        # Insertar cursos
-        cur.execute("INSERT INTO cursos (Nombre, Descripcion) VALUES (%s, %s)", (nombre, descripcion))
+        nuevoCurso = cursos.create(Nombre=nombre, Descripcion=descripcion)
+        nuevoCurso.save()
         print("Curso dado de alta correcctamente")
 
-    except Exception as errorMeterProfesor:
-        print("Error al introducir Curso en la BBDD", errorMeterProfesor)
+    except Exception as errorMeterCurso:
+        print("Error al introducir Curso en la BBDD", errorMeterCurso)
         print("No se ha realizado un nuevo alta")
-    finally:
-        'confirmarEjecucionCerrarCursor(con, cur)'
 
 
 def eliminarCursosBBDD():
@@ -396,20 +384,18 @@ def eliminarCursosBBDD():
     Metodo para eliminar un curso
     :return: No devuelve nada
     '''
-    con, cur = conexion()
-    if ut.comprobarVacio("cursos"):
+    if ut.comprobarVacio("Cursos"):
         nombre = gc.buscarCurso()
 
         if nombre != "":
             if ut.confirmacion("Si el curso tiene alumnos, estos de desmatricularan\nSeguro que quieres ELIMINAR EL CURSO?", f"Eliminacion del CURSO: {nombre} realizada"):
                 try:
-                    cur.execute(f"DELETE FROM cursos WHERE Nombre = '{nombre}'")
+                    cursos.delete().where(cursos.Nombre == nombre).execute()
 
                 except Exception as errorEliminar:
                     print(f"Error al eliminar el CURSO: {nombre}: {errorEliminar}")
                 finally:
                     'confirmarEjecucionCerrarCursor(con, cur)'
-
 
 def buscarCursoBBDD(nombre):
     '''
@@ -418,24 +404,21 @@ def buscarCursoBBDD(nombre):
     :param nombre: Nombre del curso que se desea buscar
     :return: Devuelve True o False en funcion de si encuentra el curso con el nombre indicado
     '''
-    con, cur = conexion()
+
     encontrado = False
-    if ut.comprobarVacio("cursos"):
+    if ut.comprobarVacio("Cursos"):
         try:
-            cur.execute(f"SELECT * FROM cursos WHERE Nombre = '{nombre}'")
-            curso = cur.fetchone()
+            curso = cursos.select(cursos.Codigo, cursos.Nombre, cursos.Descripcion).where(cursos.Nombre == nombre).first()
             if curso:
                 print("Datos del Curso:")
-                print("Codigo:", curso[0])
-                print("Nombre:", curso[1])
-                print("Descripcion:", curso[2])
-                cur.execute(f''' SELECT profesores.Nombre , profesores.DNI 
-                            from profesores 
-                            JOIN cursos ON profesores.ID = cursos.ProfesorID 
-                            WHERE cursos.Codigo = '{curso[0]}' ''')
-                profe = cur.fetchone()
+                print("Codigo:", curso.Codigo)
+                print("Nombre:", curso.Nombre)
+                print("Descripcion:", curso.Descripcion)
+                profe = (profesores.select(profesores.Nombre, profesores.DNI)
+                         .join(cursos, on=(profesores.ID == cursos.ProfesorID))
+                         .where(cursos.Codigo == cursos.Codigo)).first()
                 if profe is not None:
-                    print(f"Profesor: {profe[0]} , con el DNI: {profe[1]}\n")
+                    print(f"Profesor: {profe.nombre} , con el DNI: {profe.DNI}\n")
                 else:
                     print("Todavia no tiene ningun profesor asignado\n")
                 encontrado = True
@@ -444,9 +427,7 @@ def buscarCursoBBDD(nombre):
         except Exception as errorModificarProfesor:
             print(f"Error al buscar el curso con nombre: {nombre}: {errorModificarProfesor}")
         finally:
-            'confirmarEjecucionCerrarCursor(con, cur)'
             return encontrado
-
 
 def modificarCursoBBDD():
     """
@@ -454,14 +435,13 @@ def modificarCursoBBDD():
 
     :return: No devuelve nada.
     """
-    con, cur = conexion()
-    if ut.comprobarVacio("cursos"):
+    if ut.comprobarVacio("Cursos"):
         nombre = gc.buscarCurso()
         if nombre != "":
             try:
-                # Consultar datos actuales del profesor
-                cur.execute(f"SELECT * FROM cursos WHERE Nombre = '{nombre}'")
-                profesor_actual = cur.fetchone()
+                # Consultar datos actuales del curso
+                curso = cursos.select().where(cursos.Nombre == nombre).first()
+
 
                 # Mostrar opciones al usuario
                 print("\nSeleccione el campo a modificar:")
@@ -473,17 +453,17 @@ def modificarCursoBBDD():
                 finEntradaAlta = False
                 fallos = 0
 
-                opcion = input("Opción: ")
+                opcion = input("Opcion: ")
 
                 if opcion == "1":
 
                     while not finEntradaAlta and fallos < 5:
 
-                        nombreNuevo = input("Nombre: ").strip().upper()
+                        nombreNuevo = input("Nuevo nombre: ").strip().upper()
                         if ut.validarNombre(nombreNuevo):
                             if devolverIddeCurso(nombreNuevo) is None:
                                 if ut.confirmacion("Seguro que quieres modificar?", "Solicitud"):
-                                    cur.execute(f"UPDATE cursos SET Nombre = '{nombreNuevo}' WHERE Nombre = '{nombre}'")
+                                    cursos.update(Nombre=nombreNuevo).where(cursos.Nombre == nombre).execute()
                                     finEntradaAlta = True
                                     print("Curso actualizado correctamente.")
                                 else:
@@ -496,11 +476,10 @@ def modificarCursoBBDD():
                 elif opcion == "2":
 
                     while not finEntradaAlta and fallos < 5:
-                        descripcionNueva = input("Descripcion: ").strip().upper()
+                        descripcionNueva = input("Nueva descripcion: ").strip().upper()
                         if ut.validarDireccion(descripcionNueva):
                             if ut.confirmacion("Seguro que quieres modificar?", "Solicitud"):
-                                cur.execute(
-                                    f"UPDATE cursos SET Descripcion = '{descripcionNueva}' WHERE Nombre = '{nombre}'")
+                                cursos.update(Descripcion=descripcionNueva).where(cursos.Nombre == nombre).execute()
                                 finEntradaAlta = True
                                 print("Curso actualizado correctamente.")
                             else:
@@ -509,7 +488,7 @@ def modificarCursoBBDD():
                             fallos = ut.fallo(fallos, "La dirección debe de contener mínimo 4 carácteres.")
 
                 elif opcion == "3":
-
+#############################################################################################3
                     while not finEntradaAlta and fallos < 5:
                         profesorDni = input("DNI Profesor: ").strip().upper()
 
@@ -533,7 +512,6 @@ def modificarCursoBBDD():
                 else:
                     print("Opción no válida.")
 
-
             except Exception as errorModificarProfesor:
                 print(f"Error al modificar el profesor {nombre}: {errorModificarProfesor}")
             finally:
@@ -545,33 +523,30 @@ def mostrarTodosCursosBBDD():
     Metodo para mostrar todos los cursos y en caso de tener un profesor asignado lo muestra tambien
     :return: No devuelve nada
     '''
-    con, cur = conexion()
+
     cont = 1
     # Seleccionar todos los cursos
-    cur.execute("SELECT * FROM cursos")
+    curso = cursos.select()
     # Recuperar todos los resultados
-    cursos = cur.fetchall()
     if not cursos:
         print("No hay cursos registrados en la BBDD.")
     else:
         print("Lista de cursos:")
         for curso in cursos:
             print(f"--- CURSO {cont}---")
-            print("Codigo:", curso[0])
-            print("Nombre:", curso[1])
-            print("Descripcion:", curso[2])
-            cur.execute(f''' SELECT profesores.Nombre , profesores.DNI 
-            from profesores 
-            JOIN cursos ON profesores.ID = cursos.ProfesorID 
-            WHERE cursos.Codigo = '{curso[0]}' ''')
-            profe = cur.fetchone()
+            print("Codigo:", curso.Codigo)
+            print("Nombre:", curso.Nombre)
+            print("Descripcion:", curso.Descripcion)
+            profe = (profesores.select(profesores.Nombre, profesores.DNI)
+                     .join(cursos, on=(profesores.ID == cursos.ProfesorID))
+                     .where(cursos.Codigo == cursos.Codigo)).first()
+
             if profe is not None:
-                print(f"Profesor: {profe[0]} , con el DNI: {profe[1]}\n")
+                print(f"Profesor: {profe.nombre} , con el DNI: {profe.DNI}\n")
             else:
                 print("")
 
             cont = cont + 1
-    'confirmarEjecucionCerrarCursor(con, cur)'
 
 
 def devolverIddeCurso(nombre):
@@ -581,19 +556,14 @@ def devolverIddeCurso(nombre):
     :return: Devuelve el id si encuentra el curso , de lo contrario devuelve None
     '''
 
-    con, cur = conexion()
+    resultados = cursos.select().where(cursos.Nombre == nombre)
 
-    cur.execute(f"select * from cursos WHERE Nombre = '{nombre}'")
-    curso = cur.fetchone()
-
-    if curso is not None:
-        # El resultado no es None, lo que significa que se encontró un curso con ese nombre
-        id = curso[0]
+    if resultados:
+        # El resultado no es None, lo que significa que se encontro un curso con ese nombre
+        id = resultados[0]
         return id
-
-
-    'confirmarEjecucionCerrarCursor(con, cur)'
-
+    else:
+        return None
 
 ######################################################################
 ######################################################################

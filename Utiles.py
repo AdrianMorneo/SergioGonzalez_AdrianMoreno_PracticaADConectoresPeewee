@@ -119,20 +119,17 @@ def comprobarVacio (tabla):
     :param tabla: Nombre de la tabla que se desea comprobar
     :return: Devuelve True o False en funcion de si la tabla esta vacia o no
     '''
-    con, cur = gbd.conexion()
 
-    try:
-        cur.execute(f"select * from {tabla}")
-        resultadoConsulta = cur.fetchone()
+    if tabla == "Cursos":
+        try:
+            resultadoConsulta = gbd.cursos.select()
 
-        if resultadoConsulta is None:
-            print(f"La tabla {tabla} esta vacia")
-            return False
-        else:
-            return True
+            if resultadoConsulta:
+                return True
+            else:
+                print(f"La tabla {tabla} esta vacia")
+                return False
 
-    except Exception as comprobarTabla:
-        print("Error al comprobar tabla en la BBDD", comprobarTabla)
 
-    finally:
-        gbd.confirmarEjecucionCerrarCursor(con, cur)
+        except Exception as comprobarTabla:
+            print("Error al comprobar tabla en la BBDD", comprobarTabla)

@@ -8,7 +8,6 @@ gbd.crearBBDD()
 gbd.crearTablasBBDD()
 
 while True:
-    gc.nuevoCursoPeewee()
     # Menú principal
     print("\nBienvenido al Centro de Estudios de Adrian y Sergio")
     print("--------------------------------------------------")
