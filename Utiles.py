@@ -133,3 +133,25 @@ def comprobarVacio (tabla):
 
         except Exception as comprobarTabla:
             print("Error al comprobar tabla en la BBDD", comprobarTabla)
+
+    elif tabla == "profesores":
+        try:
+            resultadoConsulta = gbd.profesores.select()
+            if resultadoConsulta:
+                return True
+            else:
+                print(f"La tabla {tabla} esta vacia")
+                return False
+        except Exception as comprobarTabla:
+            print("Error al comprobar tabla en la BBDD", comprobarTabla)
+
+    else:
+        try:
+            resultadoConsulta = gbd.alumnos.select()
+            if resultadoConsulta:
+                return True
+            else:
+                print(f"La tabla {tabla} esta vacia")
+                return False
+        except Exception as comprobarTabla:
+            print("Error al comprobar tabla en la BBDD", comprobarTabla)

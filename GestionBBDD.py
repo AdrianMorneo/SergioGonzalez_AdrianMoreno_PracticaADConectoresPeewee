@@ -1,10 +1,13 @@
+import peewee
 import pymysql as ps
+from peewee import MySQLDatabase, CharField, Model, DateField, ForeignKeyField, TextField, AutoField
+
 import Utiles as ut
 import GestionProfesores as gp
 import GestionAlumnos as ga
 import GestionCursos as gc
 from configparser import ConfigParser
-from peewee import Model, MySQLDatabase, CharField , AutoField , TextField , ForeignKeyField, DateField
+
 
 
 ######################################################################
@@ -13,55 +16,9 @@ from peewee import Model, MySQLDatabase, CharField , AutoField , TextField , For
 ######################################################################
 ######################################################################
 
-db = MySQLDatabase('adrianmoreno_sergiogonzalezPeewee', user='root', password='my-secret-pw',host='localhost', port=3307)
+db = MySQLDatabase('adrianmoreno_sergiogonzalezPeewee', user='root', password='1234',host='localhost', port=3306)
 
 
-class profesores(Model):
-    ID = AutoField(primary_key=True)
-    DNI = CharField(unique=True, max_length=9)
-    Nombre = CharField(max_length=255)
-    Direccion = CharField(max_length=255)
-    Telefono = CharField(max_length=9)
-
-    class Meta:
-        database = db
-        table_name = 'profesores'
-    # Tabla para cursos
-
-
-class cursos(Model):
-    Codigo = AutoField(primary_key=True)
-    Nombre = CharField(unique=True, max_length=255)
-    Descripcion = TextField()
-    ProfesorID = ForeignKeyField(profesores, backref='Cursos', null=True)
-
-    class Meta:
-        database = db
-        table_name = 'Cursos'
-        # Tabla Alumnos
-
-
-class alumnos(Model):
-    NumeroExpediente = AutoField(primary_key=True)
-    Nombre = CharField(max_length=255)
-    Apellidos = CharField(max_length=255)
-    Telefono = CharField(unique=True, max_length=9)
-    Direccion = CharField(max_length=255)
-    FechaNacimiento = DateField()
-
-    class Meta:
-        database = db
-        table_name = 'alumnos'
-    # Tabla para la relación entre alumnos y cursos (muchos a muchos)
-
-
-class alumnoscursos(Model):
-    AlumnoExpediente = ForeignKeyField(alumnos, field='NumeroExpediente', backref='alumnos_cursos')
-    CursoCodigo = ForeignKeyField(cursos, field='Codigo', backref='alumnos_cursos')
-
-    class Meta:
-        database = db
-        table_name = 'AlumnosCursos'
 
 def crearBBDD():
     """
@@ -109,6 +66,52 @@ def conexion():
         print("Error en la conexión:", errorConexion)
 
     return None, None  # Retorna None en caso de error en la conexión
+class profesores (Model):
+    ID = AutoField(primary_key=True)
+    DNI = CharField(unique=True, max_length=9)
+    Nombre = CharField(max_length=255)
+    Direccion = CharField(max_length=255)
+    Telefono = CharField(max_length=9)
+
+    class Meta:
+        database = db
+        table_name = 'profesores'
+    # Tabla para cursos
+
+
+class cursos(Model):
+    Codigo = AutoField(primary_key=True)
+    Nombre = CharField(unique=True, max_length=255)
+    Descripcion = TextField()
+    ProfesorID = ForeignKeyField(profesores, backref='cursos', null=True)
+
+    class Meta:
+        database = db
+        table_name = 'Cursos'
+        # Tabla Alumnos
+
+
+class alumnos(Model):
+    NumeroExpediente = AutoField(primary_key=True)
+    Nombre = CharField(max_length=255)
+    Apellidos = CharField(max_length=255)
+    Telefono = CharField(unique=True, max_length=9)
+    Direccion = CharField(max_length=255)
+    FechaNacimiento = DateField()
+
+    class Meta:
+        database = db
+        table_name = 'alumnos'
+    # Tabla para la relación entre alumnos y cursos (muchos a muchos)
+
+
+class alumnoscursos(Model):
+    AlumnoExpediente = ForeignKeyField(alumnos, field='NumeroExpediente', backref='alumnos_cursos')
+    CursoCodigo = ForeignKeyField(cursos, field='Codigo', backref='alumnos_cursos')
+
+    class Meta:
+        database = db
+        table_name = 'AlumnosCursos'
 
 def crearTablasBBDD():
     """
@@ -141,12 +144,11 @@ def nuevoProfesorInsertBBDD(dni, nombre, direccion, telefono):
     :param telefono: Recibe telefono profesor
     :return: No devuelve nada
     """
-    con, cur = conexion()
 
     try:
         # Insertar Profesor
-        cur.execute("INSERT INTO profesores (DNI, Nombre, Direccion, Telefono) VALUES (%s, %s, %s, %s)",
-                    (dni, nombre, direccion, telefono))
+        nuevoProfesor = profesores.create(DNI=dni, Nombre=nombre, Direccion=direccion, Telefono=telefono)
+        nuevoProfesor.save()
         print("Profesor dado de alta correcctamente")
 
     except Exception as errorMeterProfesor:
@@ -161,14 +163,14 @@ def eliminarProfesorBBDD():
     Realiza la consulta SQL para eliminar al profesor, pide DNI y confirma
     :return: No devuelve nada
     """
-    con, cur = conexion()
+
     if ut.comprobarVacio("profesores"):
         dni = gp.buscarProfesor()
         if dni != "":
             if ut.confirmacion("Si el profesor imparte algún curso, el curso se quedará sin profesor\nSeguro que quieres ELIMINAR AL PROFESOR?",
                                f"Eliminacion de Profesor con {dni} realizada"):
                 try:
-                    cur.execute(f"DELETE FROM profesores WHERE DNI = '{dni}'")
+                    profesores.delete().where(profesores.DNI == dni).execute()
 
                 except Exception as errorEliminar:
                     print(f"Error al eliminar el profesor con DNI: {dni}: {errorEliminar}")
@@ -182,20 +184,18 @@ def buscarProfesorBBDD(dni):
     :param dni: Recibe el DNI
     :return: Devuelve el ID del profesor encontrado por el DNI
     """
-    con, cur = conexion()
-    encontrado = False
+
     if ut.comprobarVacio("profesores"):
         try:
-            cur.execute(f"SELECT * FROM profesores WHERE DNI = '{dni}'")
-            profesor = cur.fetchone()
+            profesor = profesores.select().where(profesores.DNI == dni).first()
             if profesor:
                 print("Datos del profesor:")
-                print("ID:", profesor[0])
-                print("DNI:", profesor[1])
-                print("Nombre:", profesor[2])
-                print("Dirección:", profesor[3])
-                print("Teléfono:", profesor[4])
-                return profesor[0]
+                print("ID:", profesor.ID)
+                print("DNI:", profesor.DNI)
+                print("Nombre:", profesor.Nombre)
+                print("Dirección:", profesor.Direccion)
+                print("Teléfono:", profesor.Telefono)
+                return profesor.ID
             else:
                 print("No se encontró ningún profesor con el DNI especificado.")
                 return 0
@@ -211,19 +211,16 @@ def buscarProfesorBBDDSinPrint(dni):
     :param dni: Recibe el DNI
     :return: Devuelve el ID del profesor encontrado por el DNI
     """
-    con, cur = conexion()
-    encontrado = False
 
     try:
-        cur.execute(f"SELECT * FROM profesores WHERE DNI = '{dni}'")
-        profesor = cur.fetchone()
+        profesor = profesores.select().where(profesores.DNI == dni).first()
         if profesor:
-            return profesor[0]
+            return profesor.ID
         else:
             print("No se encontró ningún profesor con el DNI especificado.")
             return 0
-    except Exception as errorModificarProfesor:
-        print(f"Error al buscar el profesor con DNI: {dni}: {errorModificarProfesor}")
+    except Exception as errorBuscar:
+        print(f"Todavia no hay ningun profesor con dni: {dni}")
         return 0
     finally:
         ''
@@ -237,14 +234,14 @@ def modificarProfesorBBDD():
     Permite al usuario modificar un profesor seleccionando el campo a modificar.
     :return: No devuelve nada.
     """
-    con, cur = conexion()
+
     if ut.comprobarVacio("profesores"):
         dni = gp.buscarProfesor()
         if dni != "":
             try:
                 # Consultar datos actuales del profesor
-                cur.execute(f"SELECT * FROM PROFESORES WHERE ID = '{dni}'")
-                profesor_actual = cur.fetchone()
+
+                profesor = profesores.select().where(profesores.DNI == dni).first()
 
                 # Mostrar opciones al usuario
                 print("\nSeleccione el campo a modificar:")
@@ -266,7 +263,7 @@ def modificarProfesorBBDD():
                         if ut.validarDNI(dniNuevo):
                             if buscarProfesorBBDDSinPrint(dniNuevo) == 0:
                                 if ut.confirmacion("Seguro que quieres modificar?", "Solicitud"):
-                                    cur.execute(f"UPDATE profesores SET DNI = '{dniNuevo}' WHERE DNI = '{dni}'")
+                                    profesores.update(DNI=dniNuevo).where(profesores.DNI == dni).execute()
                                     finEntradaAlta = True
                                     print("Profesor actualizado correctamente.")
                                 else:
@@ -283,7 +280,7 @@ def modificarProfesorBBDD():
                         nombreNuevo = input("Nombre: ").strip().upper()
                         if ut.validarNombre(nombreNuevo):
                             if ut.confirmacion("Seguro que quieres modificar?", "Solicitud"):
-                                cur.execute(f"UPDATE profesores SET Nombre = '{nombreNuevo}' WHERE DNI = '{dni}'")
+                                profesores.update(Nombre=nombreNuevo).where(profesores.DNI == dni).execute()
                                 finEntradaAlta = True
                                 print("Profesor actualizado correctamente.")
                             else:
@@ -297,7 +294,7 @@ def modificarProfesorBBDD():
                         direccionNueva = input("Direccion: ").strip().upper()
                         if ut.validarDireccion(direccionNueva):
                             if ut.confirmacion("Seguro que quieres modificar?", "Solicitud"):
-                                cur.execute(f"UPDATE profesores SET Direccion = '{direccionNueva}' WHERE DNI = '{dni}'")
+                                profesores.update(Direccion=direccionNueva).where(profesores.DNI == dni).execute()
                                 finEntradaAlta = True
                                 print("Profesor actualizado correctamente.")
                             else:
@@ -311,7 +308,7 @@ def modificarProfesorBBDD():
                         telefonoNuevo = input("Telefono: ").strip().upper()
                         if ut.validarTelefono(telefonoNuevo):
                             if ut.confirmacion("Seguro que quieres modificar?", "Solicitud"):
-                                cur.execute(f"UPDATE profesores SET Telefono = '{telefonoNuevo}' WHERE DNI = '{dni}'")
+                                profesores.update(Telefono=telefonoNuevo).where(profesores.DNI == dni).execute()
                                 finEntradaAlta = True
                                 print("Profesor actualizado correctamente.")
                             else:
@@ -335,23 +332,24 @@ def mostrarProfesores():
     Muestra los profesores de una manera atractiva
     :return: No devuelve nada
     """
-    con, cur = conexion()
     cont = 1
     # Seleccionar todos los alumnos
-    cur.execute("SELECT * FROM profesores")
+
+    profesor = profesores.select()
+
     # Recuperar todos los resultados
-    profesores = cur.fetchall()
+
     if not profesores:
         print("No hay profesores registrados en la BBDD.")
     else:
         print("Lista de profesores:")
         for profesor in profesores:
             print(f"--- PROFESOR {cont}---")
-            print("ID:", profesor[0])
-            print("Dni:", profesor[1])
-            print("Nombre:", profesor[2])
-            print("Direccion:", profesor[3])
-            print("Telefono:", profesor[4], '\n')
+            print("ID:", profesor.ID)
+            print("DNI:", profesor.DNI)
+            print("Nombre:", profesor.Nombre)
+            print("Dirección:", profesor.Direccion)
+            print("Teléfono:", profesor.Telefono + '\n')
             cont = cont + 1
     'confirmarEjecucionCerrarCursor(con, cur)'
 
@@ -408,26 +406,28 @@ def buscarCursoBBDD(nombre):
     encontrado = False
     if ut.comprobarVacio("Cursos"):
         try:
-            curso = cursos.select(cursos.Codigo, cursos.Nombre, cursos.Descripcion).where(cursos.Nombre == nombre).first()
+            curso = cursos.select(cursos.Codigo, cursos.Nombre, cursos.Descripcion, cursos.ProfesorID).where(
+                cursos.Nombre == nombre).first()
             if curso:
                 print("Datos del Curso:")
                 print("Codigo:", curso.Codigo)
                 print("Nombre:", curso.Nombre)
                 print("Descripcion:", curso.Descripcion)
-                profe = (profesores.select(profesores.Nombre, profesores.DNI)
-                         .join(cursos, on=(profesores.ID == cursos.ProfesorID))
-                         .where(cursos.Codigo == cursos.Codigo)).first()
+                profe = (profesores.select(profesores.Nombre, profesores.DNI).where(
+                    profesores.ID == curso.ProfesorID).first())
                 if profe is not None:
-                    print(f"Profesor: {profe.nombre} , con el DNI: {profe.DNI}\n")
+                    print(f"Profesor: {profe.Nombre} , con el DNI: {profe.DNI}\n")
                 else:
-                    print("Todavia no tiene ningun profesor asignado\n")
+                    print("No tiene profesor todavia")
                 encontrado = True
             else:
-                print("No se encontro ningún curso con el nombre especificado.")
-        except Exception as errorModificarProfesor:
-            print(f"Error al buscar el curso con nombre: {nombre}: {errorModificarProfesor}")
-        finally:
-            return encontrado
+                print("No se encontró ningún curso con el nombre especificado.")
+        except peewee.DoesNotExist:
+            print(f"No se encontró ningún curso con el nombre especificado: {nombre}")
+        except Exception as errorBuscarCurso:
+            print(f"Error al buscar el curso con nombre: {nombre}: {errorBuscarCurso}")
+
+    return encontrado
 
 def modificarCursoBBDD():
     """
@@ -496,8 +496,7 @@ def modificarCursoBBDD():
                             IDProfesor = buscarProfesorBBDD(profesorDni)
                             if IDProfesor != 0:
                                 if ut.confirmacion("Seguro que quieres modificar?", "Solicitud"):
-                                    cur.execute(
-                                        f"UPDATE cursos SET ProfesorID = '{IDProfesor}' WHERE Nombre = '{nombre}'")
+                                    cursos.update(ProfesorID=IDProfesor).where (cursos.Nombre == nombre).execute()
                                     finEntradaAlta = True
                                     print("Curso actualizado correctamente.")
                                 else:
@@ -537,14 +536,11 @@ def mostrarTodosCursosBBDD():
             print("Codigo:", curso.Codigo)
             print("Nombre:", curso.Nombre)
             print("Descripcion:", curso.Descripcion)
-            profe = (profesores.select(profesores.Nombre, profesores.DNI)
-                     .join(cursos, on=(profesores.ID == cursos.ProfesorID))
-                     .where(cursos.Codigo == cursos.Codigo)).first()
-
+            profe = (profesores.select(profesores.Nombre, profesores.DNI).where(profesores.ID == curso.ProfesorID).first())
             if profe is not None:
-                print(f"Profesor: {profe.nombre} , con el DNI: {profe.DNI}\n")
+                print(f"Profesor: {profe.Nombre} , con el DNI: {profe.DNI}\n")
             else:
-                print("")
+                print("No tiene profesor todavia")
 
             cont = cont + 1
 

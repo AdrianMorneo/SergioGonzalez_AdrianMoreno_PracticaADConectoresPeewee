@@ -109,7 +109,7 @@ while True:
     elif opcion_principal == '3':
         # Submenu de Cursos
         while True:
-            print("\nSubMenu Cursos:")
+            print("\nSubMenu Cursos: (Aniadir profesor a curso esta en modificar)")
             print("---------------")
             print("1. Nuevo curso")
             print("2. Eliminar curso")
@@ -121,7 +121,7 @@ while True:
             print("8. Mostrar Alumnos de un Curso")
             print("9. Volver al menu principal")
             print("0. Salir")
-            opcion_cursos = input("\nSeleccione una opcion (1-5, 9, 0): ")
+            opcion_cursos = input("\nSeleccione una opcion (1-9, 0): ")
 
             if opcion_cursos == '1':
                 print("\n-- Has seleccionado: Nuevo curso --")
