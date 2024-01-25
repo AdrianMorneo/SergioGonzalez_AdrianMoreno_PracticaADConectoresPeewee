@@ -37,7 +37,7 @@ def nuevoAlumno():
             while not finEntradaAlta and fallos < 5:
                 apellidos = input("Apellidos: ").strip().upper()
                 if ut.validarNombre(apellidos):
-                    if not alumnoRepe(nombre,apellidos):
+                    if not gbd.alumnoRepe(nombre,apellidos):
                         print("\t\tApellidos Validos\n")
                         finEntradaAlta = True
                     else:
@@ -50,7 +50,7 @@ def nuevoAlumno():
             while not finEntradaAlta and fallos < 5:
                 telefono = input("Telefono: ").strip()
                 if ut.validarTelefono(telefono):
-                    if not tlfRepe(telefono):
+                    if not gbd.tlfRepe(telefono):
                         print("\t\tTelefono Valido\n")
                         finEntradaAlta = True
                     else:
@@ -73,7 +73,7 @@ def nuevoAlumno():
         if fallos < 5:
             fallos = 0
             while not finEntradaAlta and fallos < 5:
-                fechaNacimiento = input("Fecha de nacimiento: ").strip()
+                fechaNacimiento = input("Fecha de nacimiento (yyyy-mm-dd): ").strip()
                 if ut.validarFechaNacimiento(fechaNacimiento):
                     print("\t\tFecha de nacimiento Valida\n")
                     finEntradaAlta = True
@@ -103,7 +103,7 @@ def buscarAlumno():
         while not finEntradaAlta and fallos < 5:
             nombre = input("Nombre del alumno : ").strip().upper()
             if ut.validarNombre(nombre):
-                if buscarPorNombre(nombre):
+                if gbd.buscarPorNombre(nombre):
                     finEntradaAlta = True
                 else:
                     fallos = ut.fallo(fallos, "No hay ningun Alumno con ese nombre")
@@ -115,7 +115,7 @@ def buscarAlumno():
             while not finEntradaAlta and fallos < 5:
                 apellidos = input("Apellidos del alumno : ").strip().upper()
                 if ut.validarNombre(apellidos):
-                    if buscarPorNombreyApellido(nombre, apellidos):
+                    if gbd.buscarPorNombreyApellido(nombre, apellidos):
                         finEntradaAlta = True
                     else:
                         fallos = ut.fallo(fallos, f"No hay registrado ningun alumno {nombre} {apellidos}")
@@ -127,69 +127,3 @@ def buscarAlumno():
                 return nombre, apellidos
             else:
                 return ""
-
-def alumnoRepe(nombre , apellidos):
-    '''
-    Para comprobar por codigo si se repite un alumno para notificar al usuario y  evitar la entrada auqnue tambien
-    esta restringido en la propia tabla alumnos con UNIQUE
-    :param nombre: Nombre del alumno a comprobar
-    :param apellidos: Apellidos del alumno a comprobar
-    :return: Devuelve True o False en funcion de si lo encuentra
-    '''
-
-    con, cur = gbd.conexion()
-    cur.execute(f"SELECT * FROM alumnos WHERE Nombre = '{nombre}' AND Apellidos = '{apellidos}'")
-    repetido = cur.fetchone()
-    if repetido is not None:
-        return True
-    else:
-        return False
-
-def tlfRepe(telefono):
-    '''
-    Metodo para verificar que el telefono en un alumno no se repite , ya que lo logico es que cada
-    persona tenga un numero de telefono unico
-    :param telefono: Telefono a comprobar
-    :return: Devuelve True o False en funcion de si lo encuentra
-    '''
-
-    con, cur = gbd.conexion()
-    cur.execute(f"SELECT * FROM alumnos WHERE Telefono = '{telefono}' ")
-    repetido = cur.fetchone()
-    if repetido is not None:
-        return True
-    else:
-        return False
-
-def buscarPorNombre(nombreAl):
-    '''
-    Buscar el nombre introducido para ver si existe y en caso de devolver False evitar que te pida
-    seguidamente los apellidos del alumno
-    :param nombreAl: Nombre a comprobar
-    :return: Devuelve True o False en funcion de si lo encuentra
-    '''
-
-    con, cur = gbd.conexion()
-    cur.execute(f"SELECT * FROM alumnos WHERE Nombre = '{nombreAl}' ")
-    repetido = cur.fetchone()
-    if repetido is not None:
-        return True
-    else:
-        return False
-
-def buscarPorNombreyApellido(nombreAl , apellidoAl):
-    '''
-    Buscar usuario para comprobar si esta repetido recibiendo el nombre y los apellidos del alumno
-    por parametro
-    :param nombreAl: Nombre a comprobar
-    :param apellidoAl: Apellidos a comprobar
-    :return: Devuelve True o False en funcion de si lo encuentra
-    '''
-
-    con, cur = gbd.conexion()
-    cur.execute(f"SELECT * FROM alumnos WHERE Nombre = '{nombreAl}' AND Apellidos = '{apellidoAl}'")
-    repetido = cur.fetchone()
-    if repetido is not None:
-        return True
-    else:
-        return False
