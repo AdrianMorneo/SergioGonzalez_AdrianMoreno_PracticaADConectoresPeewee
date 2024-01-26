@@ -8,16 +8,14 @@ import GestionAlumnos as ga
 import GestionCursos as gc
 from configparser import ConfigParser
 
-
-
 ######################################################################
 ######################################################################
 ###                             BBDD                               ###
 ######################################################################
 ######################################################################
 
-db = MySQLDatabase('adrianmoreno_sergiogonzalezPeewee', user='root', password='my-secret-pw',host='localhost', port=3307)
-
+db = MySQLDatabase('adrianmoreno_sergiogonzalezPeewee', user='root', password='my-secret-pw', host='localhost',
+                   port=3307)
 
 
 def crearBBDD():
@@ -66,7 +64,9 @@ def conexion():
         print("Error en la conexión:", errorConexion)
 
     return None, None  # Retorna None en caso de error en la conexión
-class profesores (Model):
+
+
+class profesores(Model):
     ID = AutoField(primary_key=True)
     DNI = CharField(unique=True, max_length=9)
     Nombre = CharField(max_length=255)
@@ -106,12 +106,13 @@ class alumnos(Model):
 
 
 class alumnoscursos(Model):
-    AlumnoExpediente = ForeignKeyField(alumnos, field='NumeroExpediente', backref='alumnos_cursos')
-    CursoCodigo = ForeignKeyField(cursos, field='Codigo', backref='alumnos_cursos')
+    AlumnoExpediente = ForeignKeyField(alumnos, field='NumeroExpediente', backref='alumnos')
+    CursoCodigo = ForeignKeyField(cursos, field='Codigo', backref='cursos')
 
     class Meta:
         database = db
-        table_name = 'AlumnosCursos'
+        table_name = 'alumnoscursos'
+
 
 def crearTablasBBDD():
     """
@@ -127,6 +128,7 @@ def crearTablasBBDD():
     except Exception as errorCrearTablas:
 
         "-----Las tablas ya existen----"
+
 
 ######################################################################
 ######################################################################
@@ -167,8 +169,9 @@ def eliminarProfesorBBDD():
     if ut.comprobarVacio("profesores"):
         dni = gp.buscarProfesor()
         if dni != "":
-            if ut.confirmacion("Si el profesor imparte algún curso, el curso se quedará sin profesor\nSeguro que quieres ELIMINAR AL PROFESOR?",
-                               f"Eliminacion de Profesor con {dni} realizada"):
+            if ut.confirmacion(
+                    "Si el profesor imparte algún curso, el curso se quedará sin profesor\nSeguro que quieres ELIMINAR AL PROFESOR?",
+                    f"Eliminacion de Profesor con {dni} realizada"):
                 try:
                     profesores.delete().where(profesores.DNI == dni).execute()
 
@@ -204,6 +207,7 @@ def buscarProfesorBBDD(dni):
             return 0
         finally:
             'confirmarEjecucionCerrarCursor(con, cur)'
+
 
 def buscarProfesorBBDDSinPrint(dni):
     """
@@ -267,7 +271,7 @@ def modificarProfesorBBDD():
                                     finEntradaAlta = True
                                     print("Profesor actualizado correctamente.")
                                 else:
-                                    finEntradaAlta=True
+                                    finEntradaAlta = True
                             else:
                                 fallos = ut.fallo(fallos, "DNI está ya en la BBDD")
                         else:
@@ -386,7 +390,9 @@ def eliminarCursosBBDD():
         nombre = gc.buscarCurso()
 
         if nombre != "":
-            if ut.confirmacion("Si el curso tiene alumnos, estos de desmatricularan\nSeguro que quieres ELIMINAR EL CURSO?", f"Eliminacion del CURSO: {nombre} realizada"):
+            if ut.confirmacion(
+                    "Si el curso tiene alumnos, estos de desmatricularan\nSeguro que quieres ELIMINAR EL CURSO?",
+                    f"Eliminacion del CURSO: {nombre} realizada"):
                 try:
                     cursos.delete().where(cursos.Nombre == nombre).execute()
 
@@ -394,6 +400,7 @@ def eliminarCursosBBDD():
                     print(f"Error al eliminar el CURSO: {nombre}: {errorEliminar}")
                 finally:
                     'confirmarEjecucionCerrarCursor(con, cur)'
+
 
 def buscarCursoBBDD(nombre):
     '''
@@ -429,6 +436,7 @@ def buscarCursoBBDD(nombre):
 
     return encontrado
 
+
 def modificarCursoBBDD():
     """
     Permite al usuario modificar un profesor seleccionando el campo a modificar.
@@ -441,7 +449,6 @@ def modificarCursoBBDD():
             try:
                 # Consultar datos actuales del curso
                 curso = cursos.select().where(cursos.Nombre == nombre).first()
-
 
                 # Mostrar opciones al usuario
                 print("\nSeleccione el campo a modificar:")
@@ -467,7 +474,7 @@ def modificarCursoBBDD():
                                     finEntradaAlta = True
                                     print("Curso actualizado correctamente.")
                                 else:
-                                    finEntradaAlta=True
+                                    finEntradaAlta = True
                             else:
                                 fallos = ut.fallo(fallos, "El nombre ya esta en la BBDD.")
                         else:
@@ -495,11 +502,11 @@ def modificarCursoBBDD():
                             IDProfesor = buscarProfesorBBDD(profesorDni)
                             if IDProfesor != 0:
                                 if ut.confirmacion("Seguro que quieres modificar?", "Solicitud"):
-                                    cursos.update(ProfesorID=IDProfesor).where (cursos.Nombre == nombre).execute()
+                                    cursos.update(ProfesorID=IDProfesor).where(cursos.Nombre == nombre).execute()
                                     finEntradaAlta = True
                                     print("Curso actualizado correctamente.")
                                 else:
-                                    finEntradaAlta=True
+                                    finEntradaAlta = True
                             else:
                                 print("No hay en la BBDD ningun profesor con ese DNI")
                         else:
@@ -513,7 +520,7 @@ def modificarCursoBBDD():
             except Exception as errorModificarProfesor:
                 print(f"Error al modificar el profesor {nombre}: {errorModificarProfesor}")
             finally:
-               ' confirmarEjecucionCerrarCursor(con, cur)'
+                ' confirmarEjecucionCerrarCursor(con, cur)'
 
 
 def mostrarTodosCursosBBDD():
@@ -535,7 +542,8 @@ def mostrarTodosCursosBBDD():
             print("Codigo:", curso.Codigo)
             print("Nombre:", curso.Nombre)
             print("Descripcion:", curso.Descripcion)
-            profe = (profesores.select(profesores.Nombre, profesores.DNI).where(profesores.ID == curso.ProfesorID).first())
+            profe = (
+                profesores.select(profesores.Nombre, profesores.DNI).where(profesores.ID == curso.ProfesorID).first())
             if profe is not None:
                 print(f"Profesor: {profe.Nombre} , con el DNI: {profe.DNI}\n")
             else:
@@ -550,7 +558,6 @@ def devolverIddeCurso(nombre):
     :param nombre: Nombre del curso del que se desea saber el id
     :return: Devuelve el id si encuentra el curso , de lo contrario devuelve None
     '''
-
     resultados = cursos.select().where(cursos.Nombre == nombre)
 
     if resultados:
@@ -559,6 +566,7 @@ def devolverIddeCurso(nombre):
         return id
     else:
         return None
+
 
 ######################################################################
 ######################################################################
@@ -577,7 +585,8 @@ def nuevoAlumnoInsertBBDD(nombre, apellidos, telefono, direccion, fecha):
     '''
 
     try:
-        nuevoAlumno = alumnos.create(Nombre=nombre, Apellidos=apellidos, Telefono=telefono, Direccion=direccion, FechaNacimiento=fecha)
+        nuevoAlumno = alumnos.create(Nombre=nombre, Apellidos=apellidos, Telefono=telefono, Direccion=direccion,
+                                     FechaNacimiento=fecha)
         nuevoAlumno.save()
         print("Alumno dado de alta correcctamente")
 
@@ -596,19 +605,20 @@ def buscarAlumnoBBDD(nombre, apellidos):
     encontrado = False
     if ut.comprobarVacio("alumnos"):
 
-            alumno = alumnos.select().where(alumnos.Nombre == nombre , alumnos.Apellidos == apellidos).first()
-            if alumno:
-                print("Datos del Alumno:")
-                print("ID:", alumno.NumeroExpediente)
-                print("Nombre:", alumno.Nombre)
-                print("Apellidos:", alumno.Apellidos)
-                print("telefono:", alumno.Telefono)
-                print("Direccion:", alumno.Direccion)
-                print("Fecha de nacimiento :", alumno.FechaNacimiento)
-                return alumno.NumeroExpediente
-            else:
-                print("No se encontro ningun alumno ")
-                return 0
+        alumno = alumnos.select().where(alumnos.Nombre == nombre, alumnos.Apellidos == apellidos).first()
+        if alumno:
+            print("Datos del Alumno:")
+            print("ID:", alumno.NumeroExpediente)
+            print("Nombre:", alumno.Nombre)
+            print("Apellidos:", alumno.Apellidos)
+            print("telefono:", alumno.Telefono)
+            print("Direccion:", alumno.Direccion)
+            print("Fecha de nacimiento :", alumno.FechaNacimiento)
+            return alumno.NumeroExpediente
+        else:
+            print("No se encontro ningun alumno ")
+            return 0
+
 
 def buscarAlumnoBBDDid(nombre, apellidos):
     '''
@@ -617,22 +627,18 @@ def buscarAlumnoBBDDid(nombre, apellidos):
     :param apellidos: Apellidos del alumno a buscar
     :return: Devuelve el id o 0 en caso de no encontrar el alumno
     '''
-    con, cur = conexion()
     encontrado = False
     if ut.comprobarVacio("alumnos"):
         try:
-            cur.execute(f"SELECT * FROM alumnos WHERE Nombre = '{nombre}' AND Apellidos ='{apellidos}'")
-            alumno = cur.fetchone()
+            alumno = alumnos.select().where(alumnos.Nombre == nombre, alumnos.Apellidos == apellidos).first()
             if alumno:
-                return alumno[0]
+                return alumno.NumeroExpediente
             else:
                 print("No se encontro ningun alumno. ")
                 return 0
         except:
             print("Error al buscar el alumno. ")
             return 0
-        finally:
-            'confirmarEjecucionCerrarCursor(con, cur)'
 
 
 def eliminarAlumnoBBDD():
@@ -643,9 +649,10 @@ def eliminarAlumnoBBDD():
     if ut.comprobarVacio("alumnos"):
         alumno = ga.buscarAlumno()
         if alumno != "":
-            if ut.confirmacion("Seguro que quieres eliminar el Alumno?",f"Eliminacion del Alumno {alumno[0]} {alumno[1]}"):
+            if ut.confirmacion("Seguro que quieres eliminar el Alumno?",
+                               f"Eliminacion del Alumno {alumno[0]} {alumno[1]}"):
                 try:
-                    alumnos.delete().where(alumnos.Nombre == alumno[0], alumnos.Apellidos == alumno[1] ).execute()
+                    alumnos.delete().where(alumnos.Nombre == alumno[0], alumnos.Apellidos == alumno[1]).execute()
 
                 except Exception as errorEliminar:
                     print(f"Error al eliminar el Alumno: {alumno[0]}")
@@ -684,13 +691,15 @@ def modificarAlumnoBBDD():
                         if ut.validarNombre(nombreNuevo):
                             if not alumnoRepe(nombreNuevo, nombre[1]):
                                 if ut.confirmacion("Seguro que quieres modificar?", "Solicitud"):
-                                    alumnos.update(Nombre=nombreNuevo).where(alumnos.Nombre == nombre[0] , alumnos.Apellidos == nombre[1]).execute()
+                                    alumnos.update(Nombre=nombreNuevo).where(alumnos.Nombre == nombre[0],
+                                                                             alumnos.Apellidos == nombre[1]).execute()
                                     finEntradaAlta = True
                                     print("Alumno actualizado correctamente.")
                                 else:
-                                    finEntradaAlta=True
+                                    finEntradaAlta = True
                             else:
-                                fallos = ut.fallo(fallos,f"Ya existe un alumno con el nombre {nombreNuevo} y el apellido {nombre[1]}")
+                                fallos = ut.fallo(fallos,
+                                                  f"Ya existe un alumno con el nombre {nombreNuevo} y el apellido {nombre[1]}")
                         else:
                             fallos = ut.fallo(fallos, "El nombre debe tener minimo dos caracteres")
 
@@ -702,13 +711,16 @@ def modificarAlumnoBBDD():
                         if ut.validarNombre(nuevoApellidos):
                             if not alumnoRepe(nombre[0], nuevoApellidos):
                                 if ut.confirmacion("Seguro que quieres modificar?", "Solicitud"):
-                                    alumnos.update(Apellidos=nuevoApellidos).where(alumnos.Nombre == nombre[0] , alumnos.Apellidos == nombre[1]).execute()
+                                    alumnos.update(Apellidos=nuevoApellidos).where(alumnos.Nombre == nombre[0],
+                                                                                   alumnos.Apellidos == nombre[
+                                                                                       1]).execute()
                                     finEntradaAlta = True
                                     print("Alumno actualizado correctamente.")
                                 else:
-                                    finEntradaAlta=True
+                                    finEntradaAlta = True
                             else:
-                                fallos = ut.fallo(fallos,f"Ya existe un alumno con el nombre {nombre[0]} y el apellido {nuevoApellidos}")
+                                fallos = ut.fallo(fallos,
+                                                  f"Ya existe un alumno con el nombre {nombre[0]} y el apellido {nuevoApellidos}")
                         else:
                             fallos = ut.fallo(fallos, "Los apellidos deben contener al menos 2 caracteres.")
 
@@ -718,7 +730,8 @@ def modificarAlumnoBBDD():
                         direccionNueva = input("Nueva direccion: ").strip().upper()
                         if ut.validarDireccion(direccionNueva):
                             if ut.confirmacion("Seguro que quieres modificar?", "Solicitud"):
-                                alumnos.update(Direccion=direccionNueva).where(alumnos.Nombre == nombre[0],alumnos.Apellidos == nombre[1]).execute()
+                                alumnos.update(Direccion=direccionNueva).where(alumnos.Nombre == nombre[0],
+                                                                               alumnos.Apellidos == nombre[1]).execute()
                                 finEntradaAlta = True
                                 print("Alumno actualizado correctamente.")
                             else:
@@ -733,12 +746,14 @@ def modificarAlumnoBBDD():
                         if ut.validarTelefono(telefonoNuevo):
                             if not ga.tlfRepe(telefonoNuevo):
                                 if ut.confirmacion("Seguro que quieres modificar?", "Solicitud"):
-                                    alumnos.update(Telefono=telefonoNuevo).where(alumnos.Nombre == nombre[0],alumnos.Apellidos == nombre[1]).execute()
+                                    alumnos.update(Telefono=telefonoNuevo).where(alumnos.Nombre == nombre[0],
+                                                                                 alumnos.Apellidos == nombre[
+                                                                                     1]).execute()
 
                                     finEntradaAlta = True
                                     print("Alumno actualizado correctamente.")
                                 else:
-                                    finEntradaAlta=True
+                                    finEntradaAlta = True
                             else:
                                 fallos = ut.fallo(fallos, "El telefono introducido ya existe en otro alumno.")
                         else:
@@ -749,19 +764,23 @@ def modificarAlumnoBBDD():
                         fechaNueva = input("Nueva fecha de nacimiento: ").strip().upper()
                         if ut.validarFechaNacimiento(fechaNueva):
                             if ut.confirmacion("Seguro que quieres modificar?", "Solicitud"):
-                                alumnos.update(FechaNacimiento=fechaNueva).where(alumnos.Nombre == nombre[0],alumnos.Apellidos == nombre[1]).execute()
+                                alumnos.update(FechaNacimiento=fechaNueva).where(alumnos.Nombre == nombre[0],
+                                                                                 alumnos.Apellidos == nombre[
+                                                                                     1]).execute()
                                 finEntradaAlta = True
                                 print("Alumno actualizado correctamente.")
                             else:
                                 finEntradaAlta = True
                         else:
-                            fallos = ut.fallo(fallos,"Fecha no valida ,deben ser numeros con el siguiente formato: yyyy-mm-dd.\n Además debe ser entre 1950 y 2020")
+                            fallos = ut.fallo(fallos,
+                                              "Fecha no valida ,deben ser numeros con el siguiente formato: yyyy-mm-dd.\n Además debe ser entre 1950 y 2020")
                 elif opcion == "0":
                     print("Modificación cancelada.")
                 else:
                     print("Opción no válida.")
             except Exception as errorModificarProfesor:
                 print(f"Error al modificar el alumno {nombre[0]} {nombre[1]}")
+
 
 def mostrarAlumnos():
     '''
@@ -786,12 +805,12 @@ def mostrarAlumnos():
             print("Fecha de Nacimiento:", alumno.FechaNacimiento, '\n')
             cont = cont + 1
 
+
 def matricularAlumno():
     '''
     Metodo para dar de alta un alumno en un curso , comprueba si el alumno ya se encuentra en el curso deseado
     :return: No devuelve nada
     '''
-    con, cur = conexion()
     encontrado = False
     fallos = 0
     if ut.comprobarVacio("alumnos"):
@@ -815,31 +834,29 @@ def matricularAlumno():
                         print("Alumno encontrado")
                     else:
                         fallos = ut.fallo(fallos, "Alumno no encontrado")
-
             if fallos < 5:
 
                 op = ut.confirmacion(
-                    f"Seguro que deseas dar de alta al alumno {alumnoM[0]} {alumnoM[1]} al curso {nombreC} ?", "Matricula ")
+                    f"Seguro que deseas dar de alta al alumno {alumnoM[0]} {alumnoM[1]} al curso {nombreC} ?",
+                    "Matricula ")
                 if op:
                     idAlumnoM = buscarAlumnoBBDDid(alumnoM[0], alumnoM[1])
-
-                    cur.execute(f''' SELECT * FROM alumnoscursos 
-                    WHERE AlumnoExpediente = '{idAlumnoM}' AND CursoCodigo = '{idCurs}' ''')
-                    alumnoEnCurso = cur.fetchone()
+                    alumnoEnCurso = alumnoscursos.select().where(alumnoscursos.AlumnoExpediente == idAlumnoM,
+                                                                 alumnoscursos.CursoCodigo == idCurs).first()
                     if alumnoEnCurso is None:
-                        cur.execute(
-                            f"INSERT INTO alumnoscursos (AlumnoExpediente, CursoCodigo) VALUES ('{idAlumnoM}', '{idCurs}');")
+                        nAlumnoEnCurso = alumnoscursos.create(AlumnoExpediente=idAlumnoM, CursoCodigo=idCurs)
+                        nAlumnoEnCurso.save()
+
                         print("Alumno matriculado correctamente.")
                     else:
                         print("No se matriculo el alumno , ya pertenece a este Curso.")
-    'confirmarEjecucionCerrarCursor(con, cur)'
+
 
 def desmatricularAlumno():
     """
     Metodo para dar de baja un alumno en un curso.
     :return: No devuelve nada
     """
-    con, cur = conexion()
     encontrado = False
     fallos = 0
     if ut.comprobarVacio("alumnos"):
@@ -856,16 +873,18 @@ def desmatricularAlumno():
             fallos = 0
             if fallos < 5:
                 while not encontrado and fallos < 5:
-                    cur.execute(f'''SELECT NumeroExpediente, Nombre, Apellidos FROM alumnos JOIN alumnoscursos on alumnos.NumeroExpediente = alumnoscursos.AlumnoExpediente where CursoCodigo = '{idCurs}' ''')
-                    alumnos = cur.fetchall()
-                    print("Lista de alumnos:")
-                    for alumno in alumnos:
-                        print(f"--- Alumno ---")
-                        print("Numero de Expediente:", alumno[0])
-                        print("Nombre:", alumno[1])
-                        print("Apellidos:", alumno[2], '\n')
+                    alumnosg = alumnos.select(alumnos.NumeroExpediente, alumnos.Nombre, alumnos.Apellidos).join(
+                        alumnoscursos, on=(alumnos.NumeroExpediente == alumnoscursos.AlumnoExpediente)).where(
+                        alumnoscursos.CursoCodigo == idCurs)
 
-                    if alumnos is not None:
+                    print("Lista de alumnos:")
+                    for alumno in alumnosg:
+                        print(f"--- Alumno ---")
+                        print("Numero de Expediente:", alumno.NumeroExpediente)
+                        print("Nombre:", alumno.Nombre)
+                        print("Apellidos:", alumno.Apellidos, '\n')
+
+                    if alumnos:
                         encontrado = True
                         print("Alumno encontrado")
                     else:
@@ -873,24 +892,21 @@ def desmatricularAlumno():
 
             if fallos < 5:
                 expAlumno = input("Introduce el Numero de Expediente  del alumno a Eliminar: ")
-                cur.execute(f'''SELECT * FROM alumnoscursos WHERE AlumnoExpediente = '{expAlumno}' ''')
-                compAl = cur.fetchone()
-                if compAl is not None:
-                    op = ut.confirmacion(
-                        f"Seguro que deseas dar de baja al alumno del curso {nombreC} ?",
-                        "Desmatriculacion ")
+                compAl = alumnoscursos.select().where(alumnoscursos.AlumnoExpediente == expAlumno).first()
+                if compAl:
+                    op = ut.confirmacion(f"Seguro que deseas dar de baja al alumno del curso {nombreC} ?",
+                                         "Desmatriculacion ")
                     if op:
-                        cur.execute(f'''DELETE FROM alumnoscursos WHERE AlumnoExpediente = '{expAlumno}' ''')
+                        alumnoscursos.delete().where(alumnoscursos.AlumnoExpediente == expAlumno).execute()
                 else:
                     print("No has introducido un expediente correcto")
-    'confirmarEjecucionCerrarCursor(con, cur)'
+
 
 def mostrarAlumnosdeCurso():
     '''
     Metodo para mostrar todos los alumnos que se encuentren dentro de un mismo curso
     :return: No devuelve nada
     '''
-    con, cur = conexion()
     encontrado = False
     fallos = 0
     if ut.comprobarVacio("cursos"):
@@ -904,16 +920,13 @@ def mostrarAlumnosdeCurso():
                 else:
                     fallos = ut.fallo(fallos, "Curso no encontrado")
             if fallos < 5:
-                cur.execute(f'''SELECT NumeroExpediente , nombre , apellidos 
-                FROM alumnos 
-                JOIN alumnoscursos 
-                ON alumnoscursos.AlumnoExpediente = alumnos.NumeroExpediente 
-                WHERE alumnoscursos.CursoCodigo = {idCurs}''')
-
-                alumnos = cur.fetchall()
+                alumnos = alumnos.select(alumnos.NumeroExpediente, alumnos.Nombre, alumnos.Apellidos).join(
+                    alumnoscursos, on=(alumnos.NumeroExpediente == alumnoscursos.AlumnoExpediente)).where(
+                    alumnoscursos.CursoCodigo == idCurs)
                 for alumno in alumnos:
-                    print(f"Numero de Expediente: {alumno[0]} , Alumno: {alumno[1]} {alumno[2]}\n")
-    'confirmarEjecucionCerrarCursor(con, cur)'
+                    print(
+                        f"Numero de Expediente: {alumno.NumeroExpediente} , Alumno: {alumno.Nombre} {alumno.Apellidos}\n")
+
 
 def alumnoRepe(nombre, apellidos):
     '''
@@ -923,11 +936,12 @@ def alumnoRepe(nombre, apellidos):
     :param apellidos: Apellidos del alumno a comprobar
     :return: Devuelve True o False en funcion de si lo encuentra
     '''
-    repetido = alumnos.select().where( alumnos.Nombre == nombre , alumnos.Apellidos == apellidos).first()
+    repetido = alumnos.select().where(alumnos.Nombre == nombre, alumnos.Apellidos == apellidos).first()
     if repetido:
         return True
     else:
         return False
+
 
 def tlfRepe(telefono):
     '''
@@ -938,10 +952,11 @@ def tlfRepe(telefono):
     '''
     repetido = alumnos.select().where(alumnos.Telefono == telefono).first()
 
-    if repetido :
+    if repetido:
         return True
     else:
         return False
+
 
 def buscarPorNombre(nombreAl):
     '''
@@ -952,12 +967,13 @@ def buscarPorNombre(nombreAl):
     '''
 
     repetido = alumnos.select().where(alumnos.Nombre == nombreAl).first()
-    if repetido :
+    if repetido:
         return True
     else:
         return False
 
-def buscarPorNombreyApellido(nombreAl , apellidoAl):
+
+def buscarPorNombreyApellido(nombreAl, apellidoAl):
     '''
     Buscar usuario para comprobar si esta repetido recibiendo el nombre y los apellidos del alumno
     por parametro
@@ -967,7 +983,7 @@ def buscarPorNombreyApellido(nombreAl , apellidoAl):
     '''
     repetido = alumnos.select().where(alumnos.Nombre == nombreAl, alumnos.Apellidos == apellidoAl).first()
 
-    if repetido :
+    if repetido:
         return True
     else:
         return False

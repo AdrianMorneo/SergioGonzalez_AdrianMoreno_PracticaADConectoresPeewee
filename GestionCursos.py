@@ -2,10 +2,7 @@ import GestionBBDD as gbd
 import Utiles as ut
 
 
-
-
 def nuevoCurso():
-
     """
     Permite crear nuevos cursos pidiendo al usuario los parametros adecuados
     si falla 3 veces en un parametro no crea el curso.
@@ -51,6 +48,7 @@ def nuevoCurso():
 
         else:
             print("\nAlta Cancelada.")
+
 
 def buscarCurso():
     """
