@@ -1,3 +1,4 @@
+
 import peewee
 import pymysql as ps
 from peewee import MySQLDatabase, CharField, Model, DateField, ForeignKeyField, TextField, AutoField
@@ -14,8 +15,8 @@ from configparser import ConfigParser
 ######################################################################
 ######################################################################
 
-db = MySQLDatabase('adrianmoreno_sergiogonzalezPeewee', user='root', password='my-secret-pw', host='localhost',
-                   port=3307)
+db = MySQLDatabase('adrianmoreno_sergiogonzalezPeewee', user='root', password='1234', host='localhost',
+                   port=3306)
 
 
 def crearBBDD():
@@ -83,7 +84,7 @@ class cursos(Model):
     Codigo = AutoField(primary_key=True)
     Nombre = CharField(unique=True, max_length=255)
     Descripcion = TextField()
-    ProfesorID = ForeignKeyField(profesores, backref='cursos', null=True)
+    ProfesorID = ForeignKeyField(profesores, backref='cursos', null=True, on_delete='SET NULL')
 
     class Meta:
         database = db
@@ -106,8 +107,8 @@ class alumnos(Model):
 
 
 class alumnoscursos(Model):
-    AlumnoExpediente = ForeignKeyField(alumnos, field='NumeroExpediente', backref='alumnos')
-    CursoCodigo = ForeignKeyField(cursos, field='Codigo', backref='cursos')
+    AlumnoExpediente = ForeignKeyField(alumnos, field='NumeroExpediente', backref='alumnos', on_delete='CASCADE')
+    CursoCodigo = ForeignKeyField(cursos, field='Codigo', backref='cursos', on_delete='CASCADE')
 
     class Meta:
         database = db
@@ -920,10 +921,14 @@ def mostrarAlumnosdeCurso():
                 else:
                     fallos = ut.fallo(fallos, "Curso no encontrado")
             if fallos < 5:
-                alumnos = alumnos.select(alumnos.NumeroExpediente, alumnos.Nombre, alumnos.Apellidos).join(
-                    alumnoscursos, on=(alumnos.NumeroExpediente == alumnoscursos.AlumnoExpediente)).where(
-                    alumnoscursos.CursoCodigo == idCurs)
-                for alumno in alumnos:
+
+                alumnado = (
+                    alumnos.select(alumnos.NumeroExpediente, alumnos.Nombre, alumnos.Apellidos)
+                    .join(alumnoscursos)
+                    .join(cursos)
+                    .where(cursos.Codigo == idCurs)
+                )
+                for alumno in alumnado:
                     print(
                         f"Numero de Expediente: {alumno.NumeroExpediente} , Alumno: {alumno.Nombre} {alumno.Apellidos}\n")
 
