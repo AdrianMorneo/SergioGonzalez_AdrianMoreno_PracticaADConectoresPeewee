@@ -59,7 +59,7 @@ def buscarCurso():
     fallos = 0
     if ut.comprobarVacio("Cursos"):
         while not finEntradaAlta and fallos < 5:
-            nombre = input("Nombre: ").strip().upper()
+            nombre = input("Nombre del Curso: ").strip().upper()
             if ut.validarNombre(nombre):
                 finEntradaAlta = True
                 if gbd.buscarCursoBBDD(nombre):
