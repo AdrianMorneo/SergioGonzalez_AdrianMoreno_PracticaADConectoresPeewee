@@ -8,7 +8,6 @@
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ConexionConfig.ini" beforeDir="false" afterPath="$PROJECT_DIR$/ConexionConfig.ini" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/GestionBBDD.py" beforeDir="false" afterPath="$PROJECT_DIR$/GestionBBDD.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GestionCursos.py" beforeDir="false" afterPath="$PROJECT_DIR$/GestionCursos.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Principal.py" beforeDir="false" afterPath="$PROJECT_DIR$/Principal.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -43,7 +42,7 @@
     &quot;git-widget-placeholder&quot;: &quot;master&quot;,
     &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
     &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/Chevy/Documents/Acceso a datos/ConectoresPeewee/SergioGonzalez_AdrianMoreno_PracticaADConectoresPeewee&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/Chevy/Documents/Servicios y Procesos/Practica03ServiosYProcesosSokets/UT3_PSP_Set_Ant/Practica-UT3-Programacion-de-comunicaciones-en-red/psp-ut3-practica-server&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
@@ -55,6 +54,7 @@
   <component name="RunManager">
     <configuration name="Principal" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
       <module name="SergioGonzalez_AdrianMoreno_PracticaADConectoresPeewee" />
+      <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>

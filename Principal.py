@@ -13,7 +13,7 @@ while True:
     print("--------------------------------------------------")
     print("1. Profesores")
     print("2. Alumnos")
-    print("3. Cursos")
+    print("3. Cursos (Aniadir/Modif/Quitar Profesor esta en MODIFICAR)")
     print("0. Salir")
     opcion_principal = input("\nSeleccione una opcion (1, 2, 3, 0): ")
 
@@ -27,7 +27,6 @@ while True:
             print("3. Modificar profesor")
             print("4. Buscar profesor")
             print("5. Mostrar todos los profesores")
-            print("6. Asignar profesor a un curso")
             print("9. Volver al menu principal")
             print("0. Salir")
             opcion_profesores = input("\nSeleccione una opcion (1-5, 9, 0): ")
@@ -55,10 +54,7 @@ while True:
                 print("\n-- Has seleccionado: Mostrar todos los profesores --")
                 # Logica para mostrar todos los profesores
                 gbd.mostrarProfesores()
-            elif opcion_profesores == '6':
-                print("\n-- Has seleccionado: Asignar profesor a un curso --")
-                # Logica para anadir un profesor a un curso
-                gbd.anadirProfesoraCurso()
+
             elif opcion_profesores == '9':
                 break
             elif opcion_profesores == '0':

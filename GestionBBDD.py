@@ -14,8 +14,8 @@ from configparser import ConfigParser
 ######################################################################
 ######################################################################
 
-db = MySQLDatabase('adrianmoreno_sergiogonzalezPeewee', user='root', password='my-secret-pw', host='localhost',
-                   port=3307)
+db = MySQLDatabase('adrianmoreno_sergiogonzalezPeewee', user='root', password='1234', host='localhost',
+                   port=3306)
 
 
 def crearBBDD():
@@ -198,6 +198,17 @@ def buscarProfesorBBDD(dni):
                 print("Nombre:", profesor.Nombre)
                 print("Dirección:", profesor.Direccion)
                 print("Teléfono:", profesor.Telefono)
+                try:
+                    # Realizar una consulta para obtener los cursos que tienen el ID de profesor
+                    cursosProfesor = cursos.select().where(cursos.ProfesorID == profesor.ID)
+
+                    # Mostrar la información de los cursos
+                    print(f"Cursos que imparte:")
+                    for curso in cursosProfesor:
+                        print(f"- {curso.Nombre}")
+
+                except cursos.DoesNotExist:
+                    print(f"El profesor no imparte ningun curso.")
                 return profesor.ID
             else:
                 print("No se encontro ningun profesor con el DNI especificado.")
@@ -352,7 +363,18 @@ def mostrarProfesores():
             print("DNI:", profesor.DNI)
             print("Nombre:", profesor.Nombre)
             print("Direccion:", profesor.Direccion)
-            print("Telefono:", profesor.Telefono + '\n')
+            print("Telefono:", profesor.Telefono)
+            try:
+                # Realizar una consulta para obtener los cursos que tienen el ID de profesor
+                cursosProfesor = cursos.select().where(cursos.ProfesorID == profesor.ID)
+
+                # Mostrar la información de los cursos
+                print(f"Cursos que imparte:")
+                for curso in cursosProfesor:
+                    print(f"- {curso.Nombre}"+ '\n')
+
+            except cursos.DoesNotExist:
+                print(f"El profesor no imparte ningun curso.\n")
             cont = cont + 1
 
 
@@ -453,6 +475,7 @@ def modificarCursoBBDD():
                 print("1. Nombre")
                 print("2. Descripcion")
                 print("3. Aniadir/Cambiar Profesor de Curso")
+                print("4. Quitar a Profesor de Curso")
                 print("0. Cancelar")
 
                 finEntradaAlta = False
@@ -510,6 +533,9 @@ def modificarCursoBBDD():
                         else:
                             fallos = ut.fallo(fallos, "El DNI debe de tener 8 digitos y una letra")
 
+                elif opcion == "4":
+                    desmatricularProfesorDeCurso(nombre)
+
                 elif opcion == "0":
                     print("Modificación cancelada.")
                 else:
@@ -528,7 +554,7 @@ def mostrarTodosCursosBBDD():
     # Seleccionar todos los cursos
     curso = cursos.select()
     # Recuperar todos los resultados
-    if not cursos:
+    if not curso:
         print("No hay cursos registrados en la BBDD.")
     else:
         print("Lista de cursos:")
@@ -561,6 +587,33 @@ def devolverIddeCurso(nombre):
         return id
     else:
         return None
+
+def desmatricularProfesorDeCurso(nombreCurso):
+    '''
+    Metodo para quitar un profesor de un curso
+    :param nombreCurso: recibe el curso
+
+    '''
+    try:
+        # Buscar el curso en la base de datos por su nombre
+        curso = cursos.get(Nombre=nombreCurso)
+
+        if curso.ProfesorID is None:
+            print("El curso no tiene un profesor asignado para desmatricular.")
+        else:
+            # Mostrar información sobre el profesor actualmente asignado al curso
+            print(f"Profesor actual del curso {nombreCurso}: {curso.ProfesorID.Nombre}")
+
+            # Confirmar la desmatriculación del profesor
+            if ut.confirmacion("¿Seguro que quieres desmatricular al profesor del curso? S/N", "Desmatricular"):
+                # Desmatricular al profesor asignando None al campo ProfesorID
+                curso.ProfesorID = None
+                curso.save()  # Guardar los cambios en la base de datos
+
+    except cursos.DoesNotExist:
+        print(f"No se encontró el curso con el nombre {nombreCurso}.")
+
+
 
 
 ######################################################################
@@ -778,7 +831,7 @@ def mostrarAlumnos():
     cont = 1
     # Seleccionar todos los alumnos
     alumnado = alumnos.select()
-    if not alumnos:
+    if not alumnado:
         print("No hay alumnos registrados en la BBDD.")
     else:
         print("Lista de alumnos:")
@@ -801,7 +854,7 @@ def matricularAlumno():
     encontrado = False
     fallos = 0
     if ut.comprobarVacio("alumnos"):
-        if ut.comprobarVacio("cursos"):
+        if ut.comprobarVacio("Cursos"):
             while not encontrado and fallos < 5:
                 nombreC = input("Nombre del curso: ").strip().upper()
                 idCurs = devolverIddeCurso(nombreC)
@@ -847,7 +900,7 @@ def desmatricularAlumno():
     encontrado = False
     fallos = 0
     if ut.comprobarVacio("alumnos"):
-        if ut.comprobarVacio("cursos"):
+        if ut.comprobarVacio("Cursos"):
             while not encontrado and fallos < 5:
                 nombreC = input("Nombre del curso: ").strip().upper()
                 idCurs = devolverIddeCurso(nombreC)
@@ -895,7 +948,7 @@ def mostrarAlumnosdeCurso():
     '''
     encontrado = False
     fallos = 0
-    if ut.comprobarVacio("cursos"):
+    if ut.comprobarVacio("Cursos"):
         if ut.comprobarVacio("alumnos"):
             while not encontrado and fallos < 5:
                 nombreC = input("Nombre del curso: ").strip().upper()
@@ -976,88 +1029,6 @@ def buscarPorNombreyApellido(nombreAl, apellidoAl):
         return True
     else:
         return False
-
-
-def anadirProfesoraCurso():
-    finEntradaAlta = False
-    fallos = 0
-    if ut.comprobarVacio("profesores"):
-        if ut.comprobarVacio("Cursos"):
-            nombre = gc.buscarCurso()
-            if nombre != "":
-
-                    # Consultar datos actuales del curso
-                    curso = cursos.select().where(cursos.Nombre == nombre).first()
-                    while not finEntradaAlta and fallos < 5:
-                        profesorDni = input("DNI Profesor: ").strip().upper()
-
-                        if ut.validarDNI(profesorDni):
-                            IDProfesor = buscarProfesorBBDD(profesorDni)
-                            if IDProfesor != 0:
-                                if curso.ProfesorID_id is None:
-                                    if ut.confirmacion(f"Seguro que deseas asignarle el curso {nombre} ?", "Solicitud"):
-                                        cursos.update(ProfesorID= IDProfesor).where(cursos.Nombre == nombre).execute()
-                                        finEntradaAlta = True
-                                        print("Curso actualizado correctamente.")
-                                    else:
-                                        finEntradaAlta = True
-                                else:
-                                    print("Este curso ya tiene un profesor")
-                                    if ut.confirmacion(f"Seguro que deseas sustituir el profesor del curso {nombre} ?", "Solicitud"):
-                                        cursos.update(ProfesorID=IDProfesor).where(cursos.Nombre == nombre).execute()
-                                        finEntradaAlta = True
-                                        print("Curso actualizado correctamente.")
-                                    else:
-                                        finEntradaAlta = True
-                            else:
-                                print("No hay en la BBDD ningun profesor con ese DNI")
-                        else:
-                            fallos = ut.fallo(fallos, "El DNI debe de tener 8 digitos y una letra")
-        else:
-            print("Todavia no hay ningun curso registrado")
-    else:
-        print("Todavia no hay ningun profesor registrado")
-
-def desmatricularProfesor():
-    encontrado = False
-    fallos = 0
-    if ut.comprobarVacio("profesores"):
-        if ut.comprobarVacio("Cursos"):
-            while not encontrado and fallos < 5:
-                nombreP = input("id del profesor: ").strip().upper()
-                profesor = profesores.select().where(profesores.ID == nombreP).first()
-                if profesor :
-                    encontrado = True
-                    print("Profesor encontrado")
-                else:
-                    fallos = ut.fallo(fallos, "Profesor no encontrado")
-            encontrado = False
-            fallos = 0
-            if fallos < 5:
-                while not encontrado and fallos < 5:
-                    cursosProfesor = cursos.select(cursos.Nombre).join(
-                        profesores, on=(profesores.ID == cursos.ProfesorID)).where(
-                        profesores.ID == nombreP)
-
-                    print(f"Lista de cursos del profesor {profesor.Nombre}:")
-                    for c in cursosProfesor:
-                        print(f"- {c}")
-
-                    nombreCur = input(f"Introduce el nombre del curso del que quieras eliminar al profesor {profesor.Nombre} : ")
-                    #aqui falta un if vreificando que el nombre que se introduce sea un nombre de la lista mostrada anteriormente
-                    op = ut.confirmacion(f"Seguro que deseas dar de baja a {profesor.Nombre} del curso {nombreCur} ?","Desmatriculacion ")
-                    if op:
-                        cursos.delete().where(cursos.ProfesorID == profesor.ID).execute()
-                        print("Baja realizada")
-                        encontrado = True
-                    else:
-                        print("Operacion anulada")
-                        encontrado = True
-        else:
-            print("Todavia no hay ningun curso registrado")
-    else:
-        print("Todavia no hay ningun profesor registrado")
-
 
 
 
