@@ -13,9 +13,11 @@ from configparser import ConfigParser
 ###                             BBDD                               ###
 ######################################################################
 ######################################################################
+configuracion = ConfigParser()
+configuracion.read("ConexionConfig.ini")
 
-db = MySQLDatabase('adrianmoreno_sergiogonzalezPeewee', user='root', password='1234', host='localhost',
-                   port=3306)
+db = MySQLDatabase('adrianmoreno_sergiogonzalezPeewee', user=configuracion.get('conexion', 'user'), password=configuracion.get('conexion', 'password'), host=configuracion.get('conexion', 'host'),
+                   port=configuracion.getint('conexion', 'puerto'))
 
 
 def crearBBDD():
@@ -23,8 +25,6 @@ def crearBBDD():
     Crea la base de datos si no existe con conectores
     :return: No devuelve nada
     """
-    configuracion = ConfigParser()
-    configuracion.read("ConexionConfig.ini")
 
     con = ps.connect(host=configuracion.get('conexion', 'host'),
                      port=configuracion.getint('conexion', 'puerto'),
@@ -46,7 +46,6 @@ def conexion():
     Realiza la conexión la BBDD con los parametros que contiene el fichero de configuracion ConexionConfig.ini
     :return: No devuelve nada
     """
-
     try:
         # Definición del modelo
         class MiModelo(Model):
@@ -516,26 +515,27 @@ def modificarCursoBBDD():
                             fallos = ut.fallo(fallos, "La dirección debe de contener mínimo 4 carácteres.")
 
                 elif opcion == "3":
-                    while not finEntradaAlta and fallos < 5:
-                        profesorDni = input("DNI Profesor: ").strip().upper()
+                    if ut.comprobarVacio("profesores"):
+                        while not finEntradaAlta and fallos < 5:
+                            profesorDni = input("DNI Profesor: ").strip().upper()
 
-                        if ut.validarDNI(profesorDni):
-                            IDProfesor = buscarProfesorBBDD(profesorDni)
-                            if IDProfesor != 0:
-                                if ut.confirmacion("Seguro que quieres modificar?", "Solicitud"):
-                                    cursos.update(ProfesorID=IDProfesor).where(cursos.Nombre == nombre).execute()
-                                    finEntradaAlta = True
-                                    print("Curso actualizado correctamente.")
+                            if ut.validarDNI(profesorDni):
+                                IDProfesor = buscarProfesorBBDD(profesorDni)
+                                if IDProfesor != 0:
+                                    if ut.confirmacion("Seguro que quieres modificar?", "Solicitud"):
+                                        cursos.update(ProfesorID=IDProfesor).where(cursos.Nombre == nombre).execute()
+                                        finEntradaAlta = True
+                                        print("Curso actualizado correctamente.")
+                                    else:
+                                        finEntradaAlta = True
                                 else:
-                                    finEntradaAlta = True
+                                    print("No hay en la BBDD ningun profesor con ese DNI")
                             else:
-                                print("No hay en la BBDD ningun profesor con ese DNI")
-                        else:
-                            fallos = ut.fallo(fallos, "El DNI debe de tener 8 digitos y una letra")
+                                fallos = ut.fallo(fallos, "El DNI debe de tener 8 digitos y una letra")
 
                 elif opcion == "4":
-                    desmatricularProfesorDeCurso(nombre)
-
+                    if ut.comprobarVacio("profesores"):
+                        desmatricularProfesorDeCurso(nombre)
                 elif opcion == "0":
                     print("Modificación cancelada.")
                 else:
@@ -612,8 +612,6 @@ def desmatricularProfesorDeCurso(nombreCurso):
 
     except cursos.DoesNotExist:
         print(f"No se encontró el curso con el nombre {nombreCurso}.")
-
-
 
 
 ######################################################################

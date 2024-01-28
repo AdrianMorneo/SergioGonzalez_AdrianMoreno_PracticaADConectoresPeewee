@@ -13,7 +13,7 @@ while True:
     print("--------------------------------------------------")
     print("1. Profesores")
     print("2. Alumnos")
-    print("3. Cursos (Aniadir/Modif/Quitar Profesor esta en MODIFICAR)")
+    print("3. Cursos")
     print("0. Salir")
     opcion_principal = input("\nSeleccione una opcion (1, 2, 3, 0): ")
 
@@ -110,7 +110,7 @@ while True:
     elif opcion_principal == '3':
         # Submenu de Cursos
         while True:
-            print("\nSubMenu Cursos: (Aniadir profesor a curso esta en modificar)")
+            print("\nSubMenu Cursos: (Aniadir/Modif/Quitar Profesor esta en MODIFICAR)")
             print("---------------")
             print("1. Nuevo curso")
             print("2. Eliminar curso")
